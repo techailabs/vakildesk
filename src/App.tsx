@@ -3,8 +3,36 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+
+// Layouts
+import { PublicLayout } from "@/components/layout/PublicLayout";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { AdminLayout } from "@/components/layout/AdminLayout";
+
+// Public Pages
+import Home from "@/pages/Home";
+import Features from "@/pages/Features";
+import Pricing from "@/pages/Pricing";
+import Privacy from "@/pages/Privacy";
+import Login from "@/pages/auth/Login";
+import Signup from "@/pages/auth/Signup";
+
+// Dashboard Pages
+import Dashboard from "@/pages/dashboard/Dashboard";
+import Cases from "@/pages/dashboard/Cases";
+import NewCase from "@/pages/dashboard/NewCase";
+import Clients from "@/pages/dashboard/Clients";
+import Documents from "@/pages/dashboard/Documents";
+import Team from "@/pages/dashboard/Team";
+import Settings from "@/pages/dashboard/Settings";
+
+// Admin Pages
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminFirms from "@/pages/admin/AdminFirms";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminSubscriptions from "@/pages/admin/AdminSubscriptions";
+
+import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -15,8 +43,38 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Public Routes */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/privacy" element={<Privacy />} />
+          </Route>
+
+          {/* Auth Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+
+          {/* Dashboard Routes */}
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="cases" element={<Cases />} />
+            <Route path="cases/new" element={<NewCase />} />
+            <Route path="clients" element={<Clients />} />
+            <Route path="documents" element={<Documents />} />
+            <Route path="team" element={<Team />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="firms" element={<AdminFirms />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="subscriptions" element={<AdminSubscriptions />} />
+          </Route>
+
+          {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
