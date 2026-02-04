@@ -8,7 +8,9 @@ import {
   Plus,
   Users,
   ArrowRight,
-  AlertCircle,
+  Sparkles,
+  Upload,
+  CreditCard,
 } from "lucide-react";
 
 // Mock data for demonstration
@@ -35,21 +37,21 @@ const recentCases = [
     title: "State vs. Sharma",
     court: "Delhi High Court",
     stage: "Arguments",
-    nextHearing: "2025-02-10",
+    nextHearing: "2026-02-10",
   },
   {
     id: 2,
     title: "ABC Corp vs. XYZ Ltd",
     court: "District Court, Saket",
     stage: "Evidence",
-    nextHearing: "2025-02-15",
+    nextHearing: "2026-02-15",
   },
   {
     id: 3,
     title: "Gupta Property Dispute",
     court: "Civil Court, Dwarka",
     stage: "Filing",
-    nextHearing: "2025-02-20",
+    nextHearing: "2026-02-20",
   },
 ];
 
@@ -59,13 +61,13 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-bold font-serif">Dashboard</h1>
           <p className="text-muted-foreground">
             Welcome back! Here's your overview for today.
           </p>
         </div>
         <Link to="/dashboard/cases/new">
-          <Button>
+          <Button className="bg-accent text-accent-foreground hover:bg-gold-light">
             <Plus className="h-4 w-4 mr-2" />
             Add New Case
           </Button>
@@ -102,7 +104,7 @@ export default function Dashboard() {
         <div className="section-header px-6 pt-6">
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-accent" />
-            <h2 className="text-lg font-semibold">Today in Court</h2>
+            <h2 className="text-lg font-semibold font-serif">Today in Court</h2>
           </div>
         </div>
         <div className="p-6 pt-0">
@@ -111,7 +113,7 @@ export default function Dashboard() {
               {todayHearings.map((hearing) => (
                 <div
                   key={hearing.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-secondary/50 rounded-lg gap-4"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-muted/50 rounded-lg gap-4"
                 >
                   <div>
                     <h3 className="font-medium">{hearing.caseTitle}</h3>
@@ -142,12 +144,71 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <QuickAction
+          icon={<Plus className="h-5 w-5" />}
+          label="Add Case"
+          href="/dashboard/cases/new"
+        />
+        <QuickAction
+          icon={<Upload className="h-5 w-5" />}
+          label="Upload Order"
+          href="/dashboard/documents"
+        />
+        <QuickAction
+          icon={<Users className="h-5 w-5" />}
+          label="Invite Client"
+          href="/dashboard/clients"
+        />
+        <QuickAction
+          icon={<CreditCard className="h-5 w-5" />}
+          label="Request Payment"
+          href="/dashboard/clients"
+          comingSoon
+        />
+      </div>
+
+      {/* AI Summary Section */}
+      <div className="bg-accent/5 border border-accent/20 rounded-lg p-6">
+        <div className="flex items-start gap-4">
+          <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="h-5 w-5 text-accent" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="font-semibold font-serif">AI Case Summary</h3>
+              <span className="coming-soon-badge">Coming Soon</span>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Get AI-generated summaries of your cases, extract court directions, 
+              and prepare checklists for upcoming hearings.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" disabled>
+                <FileText className="h-4 w-4 mr-2" />
+                Summarize Case
+              </Button>
+              <Button variant="outline" size="sm" disabled>
+                Extract Directions
+              </Button>
+              <Button variant="outline" size="sm" disabled>
+                Prep Checklist
+              </Button>
+            </div>
+          </div>
+        </div>
+        <div className="ai-disclaimer mt-4">
+          AI features are informational only and do not constitute legal advice.
+        </div>
+      </div>
+
       {/* Recent Cases */}
       <div className="bg-card rounded-lg border border-border">
         <div className="section-header px-6 pt-6">
           <div className="flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Recent Cases</h2>
+            <h2 className="text-lg font-semibold font-serif">Recent Cases</h2>
           </div>
           <Link to="/dashboard/cases">
             <Button variant="ghost" size="sm">
@@ -246,4 +307,32 @@ function StatCard({
       <p className="text-3xl font-bold">{value}</p>
     </div>
   );
+}
+
+function QuickAction({
+  icon,
+  label,
+  href,
+  comingSoon,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  href: string;
+  comingSoon?: boolean;
+}) {
+  const content = (
+    <div className={`p-4 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-center ${comingSoon ? 'opacity-60 cursor-not-allowed' : ''}`}>
+      <div className="flex flex-col items-center gap-2">
+        <div className="text-primary">{icon}</div>
+        <span className="text-sm font-medium">{label}</span>
+        {comingSoon && <span className="coming-soon-badge text-xs">Soon</span>}
+      </div>
+    </div>
+  );
+
+  if (comingSoon) {
+    return content;
+  }
+
+  return <Link to={href}>{content}</Link>;
 }

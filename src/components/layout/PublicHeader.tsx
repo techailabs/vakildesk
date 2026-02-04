@@ -10,8 +10,8 @@ export function PublicHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <Scale className="h-8 w-8 text-primary" />
-          <span className="text-xl font-bold text-primary">VakilDesk</span>
+          <Scale className="h-8 w-8 text-accent" />
+          <span className="text-xl font-bold text-primary font-serif">VakilDesk</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -23,16 +23,22 @@ export function PublicHeader() {
             Features
           </Link>
           <Link
+            to="/ai-features"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            AI
+          </Link>
+          <Link
             to="/pricing"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Pricing
           </Link>
           <Link
-            to="/privacy"
+            to="/faq"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            Privacy
+            FAQ
           </Link>
         </nav>
 
@@ -43,7 +49,9 @@ export function PublicHeader() {
             </Button>
           </Link>
           <Link to="/signup">
-            <Button size="sm">Start Free Trial</Button>
+            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-gold-light">
+              Start Free Trial
+            </Button>
           </Link>
         </div>
 
@@ -72,6 +80,13 @@ export function PublicHeader() {
               Features
             </Link>
             <Link
+              to="/ai-features"
+              className="text-sm font-medium py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              AI Features
+            </Link>
+            <Link
               to="/pricing"
               className="text-sm font-medium py-2"
               onClick={() => setMobileMenuOpen(false)}
@@ -79,11 +94,18 @@ export function PublicHeader() {
               Pricing
             </Link>
             <Link
+              to="/faq"
+              className="text-sm font-medium py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              FAQ
+            </Link>
+            <Link
               to="/privacy"
               className="text-sm font-medium py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Privacy
+              Privacy & Disclaimer
             </Link>
             <div className="flex flex-col gap-2 pt-4 border-t border-border">
               <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
@@ -92,7 +114,9 @@ export function PublicHeader() {
                 </Button>
               </Link>
               <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
-                <Button className="w-full">Start Free Trial</Button>
+                <Button className="w-full bg-accent text-accent-foreground hover:bg-gold-light">
+                  Start Free Trial
+                </Button>
               </Link>
             </div>
           </nav>
