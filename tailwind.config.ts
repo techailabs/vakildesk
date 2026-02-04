@@ -80,6 +80,9 @@ export default {
           light: "hsl(var(--gold-light))",
           dark: "hsl(var(--gold-dark))",
         },
+        charcoal: "hsl(var(--charcoal))",
+        "court-red": "hsl(var(--court-red))",
+        "off-white": "hsl(var(--off-white))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -94,6 +97,12 @@ export default {
           "Segoe UI",
           "Roboto",
           "sans-serif",
+        ],
+        serif: [
+          "Merriweather",
+          "Georgia",
+          "Times New Roman",
+          "serif",
         ],
       },
       keyframes: {

@@ -12,7 +12,9 @@ import { AdminLayout } from "@/components/layout/AdminLayout";
 // Public Pages
 import Home from "@/pages/Home";
 import Features from "@/pages/Features";
+import AIFeatures from "@/pages/AIFeatures";
 import Pricing from "@/pages/Pricing";
+import FAQ from "@/pages/FAQ";
 import Privacy from "@/pages/Privacy";
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
@@ -47,7 +49,9 @@ const App = () => (
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/features" element={<Features />} />
+            <Route path="/ai-features" element={<AIFeatures />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/faq" element={<FAQ />} />
             <Route path="/privacy" element={<Privacy />} />
           </Route>
 
