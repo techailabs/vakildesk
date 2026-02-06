@@ -86,7 +86,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen bg-secondary/30 flex flex-col">
+    <div className="min-h-screen bg-muted/30 flex flex-col">
       <div className="p-4">
         <Link
           to="/"
@@ -101,11 +101,11 @@ export default function Signup() {
         <div className="w-full max-w-md">
           <div className="bg-card rounded-lg border border-border p-8 shadow-sm">
             <div className="flex items-center gap-2 justify-center mb-8">
-              <Scale className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold text-primary">VakilDesk</span>
+              <Scale className="h-8 w-8 text-gold" />
+              <span className="text-2xl font-bold text-foreground font-serif">VakilDesk</span>
             </div>
 
-            <h1 className="text-2xl font-bold text-center mb-2">
+            <h1 className="text-2xl font-bold text-center mb-2 font-serif">
               Start your free trial
             </h1>
             <p className="text-muted-foreground text-center mb-8">
@@ -165,7 +165,7 @@ export default function Signup() {
                 </p>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full bg-gold text-navy-dark hover:bg-gold-light font-semibold" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -179,18 +179,18 @@ export default function Signup() {
 
             <p className="text-center text-xs text-muted-foreground mt-6">
               By signing up, you agree to our{" "}
-              <Link to="/privacy" className="text-primary hover:underline">
+              <Link to="/privacy" className="text-gold hover:underline">
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link to="/privacy" className="text-primary hover:underline">
+              <Link to="/privacy" className="text-gold hover:underline">
                 Privacy Policy
               </Link>
             </p>
 
             <p className="text-center text-sm text-muted-foreground mt-4">
               Already have an account?{" "}
-              <Link to="/login" className="text-primary hover:underline">
+              <Link to="/login" className="text-gold hover:underline font-medium">
                 Sign in
               </Link>
             </p>

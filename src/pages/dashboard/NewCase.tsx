@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useCases } from "@/hooks/useCases";
+import { useClients } from "@/hooks/useClients";
 
 const courts = [
   "Supreme Court of India",
@@ -39,22 +42,60 @@ const stages = [
 
 export default function NewCase() {
   const [loading, setLoading] = useState(false);
+  const [caseNumber, setCaseNumber] = useState("");
+  const [caseTitle, setCaseTitle] = useState("");
+  const [caseType, setCaseType] = useState("");
+  const [court, setCourt] = useState("");
+  const [courtroom, setCourtroom] = useState("");
+  const [judge, setJudge] = useState("");
+  const [stage, setStage] = useState("");
+  const [nextHearing, setNextHearing] = useState("");
+  const [clientId, setClientId] = useState("");
+  const [notes, setNotes] = useState("");
+  
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, firm } = useAuth();
+  const { createCase } = useCases();
+  const { clients } = useClients();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (!firm?.id || !user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a case",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      await createCase.mutateAsync({
+        case_number: caseNumber || null,
+        case_title: caseTitle,
+        case_type: caseType || null,
+        court: court || null,
+        courtroom: courtroom || null,
+        judge: judge || null,
+        stage: stage || 'Filing',
+        next_hearing_date: nextHearing || null,
+        client_id: clientId || null,
+        notes: notes || null,
+        firm_id: firm.id,
+        created_by: user.id,
+        status: 'active',
+      });
 
-    toast({
-      title: "Case created",
-      description: "Your new case has been added successfully.",
-    });
-
-    navigate("/dashboard/cases");
+      navigate("/dashboard/cases");
+    } catch (error) {
+      console.error("Failed to create case:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,7 +109,7 @@ export default function NewCase() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Cases
         </button>
-        <h1 className="text-2xl font-bold">Add New Case</h1>
+        <h1 className="text-2xl font-bold font-serif">Add New Case</h1>
         <p className="text-muted-foreground">
           Enter the details of the new case
         </p>
@@ -79,7 +120,7 @@ export default function NewCase() {
         <div className="bg-card rounded-lg border border-border p-6 space-y-6">
           {/* Basic Info */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Case Information</h2>
+            <h2 className="text-lg font-semibold font-serif">Case Information</h2>
 
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -87,34 +128,39 @@ export default function NewCase() {
                 <Input
                   id="caseNumber"
                   placeholder="e.g., CRL/2024/1234"
-                  required
+                  value={caseNumber}
+                  onChange={(e) => setCaseNumber(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="caseTitle">Case Title</Label>
+                <Label htmlFor="caseTitle">Case Title *</Label>
                 <Input
                   id="caseTitle"
                   placeholder="e.g., State vs. Sharma"
                   required
+                  value={caseTitle}
+                  onChange={(e) => setCaseTitle(e.target.value)}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="caseType">Case Type</Label>
-              <Select required>
+              <Select value={caseType} onValueChange={setCaseType}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select case type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="criminal">Criminal</SelectItem>
-                  <SelectItem value="civil">Civil</SelectItem>
-                  <SelectItem value="writ">Writ Petition</SelectItem>
-                  <SelectItem value="consumer">Consumer</SelectItem>
-                  <SelectItem value="labour">Labour</SelectItem>
-                  <SelectItem value="family">Family</SelectItem>
-                  <SelectItem value="arbitration">Arbitration</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="Criminal">Criminal</SelectItem>
+                  <SelectItem value="Civil">Civil</SelectItem>
+                  <SelectItem value="Writ">Writ Petition</SelectItem>
+                  <SelectItem value="Consumer">Consumer</SelectItem>
+                  <SelectItem value="Labour">Labour</SelectItem>
+                  <SelectItem value="Family">Family</SelectItem>
+                  <SelectItem value="Arbitration">Arbitration</SelectItem>
+                  <SelectItem value="IPR">IPR</SelectItem>
+                  <SelectItem value="Commercial">Commercial</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -122,19 +168,19 @@ export default function NewCase() {
 
           {/* Court Details */}
           <div className="space-y-4 pt-4 border-t border-border">
-            <h2 className="text-lg font-semibold">Court Details</h2>
+            <h2 className="text-lg font-semibold font-serif">Court Details</h2>
 
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="court">Court</Label>
-                <Select required>
+                <Select value={court} onValueChange={setCourt}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select court" />
                   </SelectTrigger>
                   <SelectContent>
-                    {courts.map((court) => (
-                      <SelectItem key={court} value={court.toLowerCase()}>
-                        {court}
+                    {courts.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -142,7 +188,12 @@ export default function NewCase() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="courtroom">Courtroom</Label>
-                <Input id="courtroom" placeholder="e.g., Room 12" />
+                <Input 
+                  id="courtroom" 
+                  placeholder="e.g., Room 12"
+                  value={courtroom}
+                  onChange={(e) => setCourtroom(e.target.value)}
+                />
               </div>
             </div>
 
@@ -151,20 +202,22 @@ export default function NewCase() {
               <Input
                 id="judge"
                 placeholder="e.g., Hon'ble Justice Verma"
+                value={judge}
+                onChange={(e) => setJudge(e.target.value)}
               />
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="stage">Current Stage</Label>
-                <Select required>
+                <Select value={stage} onValueChange={setStage}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select stage" />
                   </SelectTrigger>
                   <SelectContent>
-                    {stages.map((stage) => (
-                      <SelectItem key={stage} value={stage.toLowerCase()}>
-                        {stage}
+                    {stages.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -172,56 +225,63 @@ export default function NewCase() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nextHearing">Next Hearing Date</Label>
-                <Input id="nextHearing" type="date" />
+                <Input 
+                  id="nextHearing" 
+                  type="date"
+                  value={nextHearing}
+                  onChange={(e) => setNextHearing(e.target.value)}
+                />
               </div>
             </div>
           </div>
 
           {/* Client Details */}
           <div className="space-y-4 pt-4 border-t border-border">
-            <h2 className="text-lg font-semibold">Client Details</h2>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="clientName">Client Name</Label>
-                <Input id="clientName" placeholder="Enter client name" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clientPhone">Client Phone</Label>
-                <Input
-                  id="clientPhone"
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                />
-              </div>
-            </div>
+            <h2 className="text-lg font-semibold font-serif">Client</h2>
 
             <div className="space-y-2">
-              <Label htmlFor="clientEmail">Client Email</Label>
-              <Input
-                id="clientEmail"
-                type="email"
-                placeholder="client@example.com"
-              />
+              <Label htmlFor="client">Select Client</Label>
+              <Select value={clientId} onValueChange={setClientId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select existing client (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No client</SelectItem>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                You can add a new client from the Clients page
+              </p>
             </div>
           </div>
 
           {/* Notes */}
           <div className="space-y-4 pt-4 border-t border-border">
-            <h2 className="text-lg font-semibold">Additional Notes</h2>
+            <h2 className="text-lg font-semibold font-serif">Additional Notes</h2>
             <div className="space-y-2">
               <Label htmlFor="notes">Notes (Optional)</Label>
               <Textarea
                 id="notes"
                 placeholder="Add any additional notes about the case..."
                 rows={4}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
               />
             </div>
           </div>
 
           {/* Actions */}
           <div className="flex gap-4 pt-4 border-t border-border">
-            <Button type="submit" disabled={loading}>
+            <Button 
+              type="submit" 
+              disabled={loading}
+              className="bg-gold text-navy-dark hover:bg-gold-light font-semibold"
+            >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
