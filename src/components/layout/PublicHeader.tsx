@@ -10,8 +10,8 @@ export function PublicHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <Scale className="h-8 w-8 text-accent" />
-          <span className="text-xl font-bold text-primary font-serif">VakilDesk</span>
+          <Scale className="h-8 w-8 text-gold" />
+          <span className="text-xl font-bold text-foreground font-serif">VakilDesk</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -49,7 +49,7 @@ export function PublicHeader() {
             </Button>
           </Link>
           <Link to="/signup">
-            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-gold-light">
+            <Button size="sm" className="bg-gold text-navy-dark hover:bg-gold-light font-semibold">
               Start Free Trial
             </Button>
           </Link>
@@ -114,7 +114,7 @@ export function PublicHeader() {
                 </Button>
               </Link>
               <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
-                <Button className="w-full bg-accent text-accent-foreground hover:bg-gold-light">
+                <Button className="w-full bg-gold text-navy-dark hover:bg-gold-light font-semibold">
                   Start Free Trial
                 </Button>
               </Link>

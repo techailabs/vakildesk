@@ -11,51 +11,31 @@ import {
   Sparkles,
   Upload,
   CreditCard,
+  Loader2,
 } from "lucide-react";
-
-// Mock data for demonstration
-const todayHearings = [
-  {
-    id: 1,
-    caseTitle: "State vs. Sharma",
-    court: "Delhi High Court",
-    courtroom: "Room 12",
-    time: "10:30 AM",
-  },
-  {
-    id: 2,
-    caseTitle: "ABC Corp vs. XYZ Ltd",
-    court: "District Court, Saket",
-    courtroom: "Room 5",
-    time: "2:00 PM",
-  },
-];
-
-const recentCases = [
-  {
-    id: 1,
-    title: "State vs. Sharma",
-    court: "Delhi High Court",
-    stage: "Arguments",
-    nextHearing: "2026-02-10",
-  },
-  {
-    id: 2,
-    title: "ABC Corp vs. XYZ Ltd",
-    court: "District Court, Saket",
-    stage: "Evidence",
-    nextHearing: "2026-02-15",
-  },
-  {
-    id: 3,
-    title: "Gupta Property Dispute",
-    court: "Civil Court, Dwarka",
-    stage: "Filing",
-    nextHearing: "2026-02-20",
-  },
-];
+import { useAuth } from "@/hooks/useAuth";
+import { useCases, useTodayHearings } from "@/hooks/useCases";
+import { useClients } from "@/hooks/useClients";
+import { useDocuments } from "@/hooks/useDocuments";
 
 export default function Dashboard() {
+  const { profile, firm, isLawyerOwner, loading: authLoading } = useAuth();
+  const { cases, isLoading: casesLoading } = useCases();
+  const { data: todayHearings, isLoading: hearingsLoading } = useTodayHearings();
+  const { clients, isLoading: clientsLoading } = useClients();
+  const { documents, isLoading: docsLoading } = useDocuments();
+
+  const activeCases = cases.filter(c => c.status === 'active');
+  const recentCases = cases.slice(0, 5);
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-gold" />
+      </div>
+    );
+  }
+
   return (
     <div className="animate-fade-in space-y-8">
       {/* Header */}
@@ -63,39 +43,50 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl font-bold font-serif">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back! Here's your overview for today.
+            Welcome back, {profile?.name || 'User'}! Here's your overview for today.
           </p>
         </div>
         <Link to="/dashboard/cases/new">
-          <Button className="bg-accent text-accent-foreground hover:bg-gold-light">
+          <Button className="bg-gold text-navy-dark hover:bg-gold-light font-semibold">
             <Plus className="h-4 w-4 mr-2" />
             Add New Case
           </Button>
         </Link>
       </div>
 
+      {/* Plan Badge */}
+      {firm && (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="px-3 py-1 rounded-full bg-gold/10 text-gold font-medium">
+            {firm.plan_type === 'firm' ? 'Firm Plan' : 'Solo Plan'}
+          </span>
+          <span className="text-muted-foreground">•</span>
+          <span className="text-muted-foreground">{firm.name}</span>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={<Briefcase className="h-5 w-5" />}
           label="Active Cases"
-          value="24"
+          value={casesLoading ? "..." : activeCases.length.toString()}
         />
         <StatCard
           icon={<Calendar className="h-5 w-5" />}
           label="Today's Hearings"
-          value="2"
+          value={hearingsLoading ? "..." : (todayHearings?.length || 0).toString()}
           highlight
         />
         <StatCard
           icon={<Users className="h-5 w-5" />}
           label="Clients"
-          value="18"
+          value={clientsLoading ? "..." : clients.length.toString()}
         />
         <StatCard
           icon={<FileText className="h-5 w-5" />}
           label="Documents"
-          value="156"
+          value={docsLoading ? "..." : documents.length.toString()}
         />
       </div>
 
@@ -103,12 +94,16 @@ export default function Dashboard() {
       <div className="bg-card rounded-lg border border-border">
         <div className="section-header px-6 pt-6">
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-accent" />
+            <Clock className="h-5 w-5 text-gold" />
             <h2 className="text-lg font-semibold font-serif">Today in Court</h2>
           </div>
         </div>
         <div className="p-6 pt-0">
-          {todayHearings.length > 0 ? (
+          {hearingsLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-gold" />
+            </div>
+          ) : todayHearings && todayHearings.length > 0 ? (
             <div className="space-y-4">
               {todayHearings.map((hearing) => (
                 <div
@@ -116,14 +111,14 @@ export default function Dashboard() {
                   className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-muted/50 rounded-lg gap-4"
                 >
                   <div>
-                    <h3 className="font-medium">{hearing.caseTitle}</h3>
+                    <h3 className="font-medium">{hearing.case_title}</h3>
                     <p className="text-sm text-muted-foreground">
                       {hearing.court} • {hearing.courtroom}
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-sm font-medium bg-accent text-accent-foreground px-3 py-1 rounded-full">
-                      {hearing.time}
+                    <span className="text-sm font-medium bg-gold text-navy-dark px-3 py-1 rounded-full">
+                      {hearing.stage}
                     </span>
                     <Link to={`/dashboard/cases/${hearing.id}`}>
                       <Button variant="ghost" size="sm">
@@ -170,10 +165,10 @@ export default function Dashboard() {
       </div>
 
       {/* AI Summary Section */}
-      <div className="bg-accent/5 border border-accent/20 rounded-lg p-6">
+      <div className="bg-gold/5 border border-gold/20 rounded-lg p-6">
         <div className="flex items-start gap-4">
-          <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-            <Sparkles className="h-5 w-5 text-accent" />
+          <div className="h-10 w-10 rounded-full bg-gold/20 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="h-5 w-5 text-gold" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
@@ -218,61 +213,85 @@ export default function Dashboard() {
           </Link>
         </div>
         <div className="overflow-x-auto">
-          <table className="legal-table">
-            <thead>
-              <tr>
-                <th>Case Title</th>
-                <th>Court</th>
-                <th>Stage</th>
-                <th>Next Hearing</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentCases.map((caseItem) => (
-                <tr key={caseItem.id}>
-                  <td className="font-medium">{caseItem.title}</td>
-                  <td className="text-muted-foreground">{caseItem.court}</td>
-                  <td>
-                    <span className="status-badge status-active">
-                      {caseItem.stage}
-                    </span>
-                  </td>
-                  <td>{new Date(caseItem.nextHearing).toLocaleDateString("en-IN")}</td>
-                  <td>
-                    <Link to={`/dashboard/cases/${caseItem.id}`}>
-                      <Button variant="ghost" size="sm">
-                        View
-                      </Button>
-                    </Link>
-                  </td>
+          {casesLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-gold" />
+            </div>
+          ) : recentCases.length > 0 ? (
+            <table className="legal-table">
+              <thead>
+                <tr>
+                  <th>Case Title</th>
+                  <th>Court</th>
+                  <th>Stage</th>
+                  <th>Next Hearing</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {recentCases.map((caseItem) => (
+                  <tr key={caseItem.id}>
+                    <td className="font-medium">{caseItem.case_title}</td>
+                    <td className="text-muted-foreground">{caseItem.court}</td>
+                    <td>
+                      <span className="status-badge status-active">
+                        {caseItem.stage}
+                      </span>
+                    </td>
+                    <td>
+                      {caseItem.next_hearing_date 
+                        ? new Date(caseItem.next_hearing_date).toLocaleDateString("en-IN")
+                        : "—"
+                      }
+                    </td>
+                    <td>
+                      <Link to={`/dashboard/cases/${caseItem.id}`}>
+                        <Button variant="ghost" size="sm">
+                          View
+                        </Button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-30" />
+              <p>No cases yet. Add your first case to get started.</p>
+              <Link to="/dashboard/cases/new">
+                <Button className="mt-4 bg-gold text-navy-dark hover:bg-gold-light">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Case
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Upgrade Banner (for Solo users) */}
-      <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex gap-4">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Users className="h-5 w-5 text-primary" />
+      {firm?.plan_type === 'solo' && isLawyerOwner && (
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex gap-4">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Growing your practice?</h3>
+                <p className="text-sm text-muted-foreground">
+                  Invite team members to collaborate on cases. Upgrade to Firm
+                  plan automatically.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold">Growing your practice?</h3>
-              <p className="text-sm text-muted-foreground">
-                Invite team members to collaborate on cases. Upgrade to Firm
-                plan automatically.
-              </p>
-            </div>
+            <Link to="/dashboard/team">
+              <Button variant="outline">Invite Team Member</Button>
+            </Link>
           </div>
-          <Link to="/dashboard/team">
-            <Button variant="outline">Invite Team Member</Button>
-          </Link>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -291,13 +310,13 @@ function StatCard({
   return (
     <div
       className={`p-4 rounded-lg border ${
-        highlight ? "border-accent bg-accent/5" : "border-border bg-card"
+        highlight ? "border-gold bg-gold/5" : "border-border bg-card"
       }`}
     >
       <div className="flex items-center gap-3 mb-2">
         <div
           className={`${
-            highlight ? "text-accent" : "text-muted-foreground"
+            highlight ? "text-gold" : "text-muted-foreground"
           }`}
         >
           {icon}

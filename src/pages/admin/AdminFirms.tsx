@@ -7,6 +7,7 @@ import {
   Building2,
   Users,
   Calendar,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,71 +22,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Mock data
-const firms = [
-  {
-    id: 1,
-    name: "Singh & Associates",
-    owner: "Adv. Rajesh Singh",
-    email: "rajesh@singhlaw.com",
-    plan: "Firm",
-    status: "active",
-    members: 3,
-    cases: 24,
-    createdAt: "2024-06-15",
-  },
-  {
-    id: 2,
-    name: "Kapoor Law Chambers",
-    owner: "Adv. Priya Kapoor",
-    email: "priya@kapoorlaw.com",
-    plan: "Solo",
-    status: "active",
-    members: 1,
-    cases: 12,
-    createdAt: "2024-08-20",
-  },
-  {
-    id: 3,
-    name: "Verma Legal",
-    owner: "Adv. Amit Verma",
-    email: "amit@vermalegal.com",
-    plan: "Firm",
-    status: "past_due",
-    members: 2,
-    cases: 18,
-    createdAt: "2024-09-10",
-  },
-  {
-    id: 4,
-    name: "Sharma Advocates",
-    owner: "Adv. Neha Sharma",
-    email: "neha@sharmaadvocates.com",
-    plan: "Solo",
-    status: "suspended",
-    members: 1,
-    cases: 5,
-    createdAt: "2024-10-05",
-  },
-];
+import { useAdminFirms } from "@/hooks/useAdmin";
 
 export default function AdminFirms() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const { data: firms, isLoading } = useAdminFirms();
 
-  const filteredFirms = firms.filter((firm) => {
+  const filteredFirms = (firms || []).filter((firm) => {
     const matchesSearch =
-      firm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      firm.owner.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || firm.status === statusFilter;
+      firm.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || firm.plan_status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Firms</h1>
+        <h1 className="text-2xl font-bold font-serif">Firms</h1>
         <p className="text-muted-foreground">Manage all registered firms</p>
       </div>
 
@@ -108,101 +62,109 @@ export default function AdminFirms() {
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="past_due">Past Due</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="trialing">Trialing</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Firms Table */}
       <div className="bg-card rounded-lg border border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="legal-table">
-            <thead>
-              <tr>
-                <th>Firm</th>
-                <th>Owner</th>
-                <th>Plan</th>
-                <th>Members</th>
-                <th>Cases</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredFirms.map((firm) => (
-                <tr key={firm.id}>
-                  <td>
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center">
-                        <Building2 className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{firm.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {firm.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="text-muted-foreground">{firm.owner}</td>
-                  <td>
-                    <span className="status-badge status-active">{firm.plan}</span>
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      {firm.members}
-                    </div>
-                  </td>
-                  <td>{firm.cases}</td>
-                  <td>
-                    <span
-                      className={`status-badge ${
-                        firm.status === "active"
-                          ? "status-active"
-                          : firm.status === "past_due"
-                          ? "status-pending"
-                          : "status-archived"
-                      }`}
-                    >
-                      {firm.status.replace("_", " ")}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      {new Date(firm.createdAt).toLocaleDateString("en-IN")}
-                    </div>
-                  </td>
-                  <td>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>View Users</DropdownMenuItem>
-                        <DropdownMenuItem>View Billing</DropdownMenuItem>
-                        {firm.status === "suspended" ? (
-                          <DropdownMenuItem className="text-success">
-                            Reactivate
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem className="text-destructive">
-                            Suspend
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-court-red" />
+          </div>
+        ) : filteredFirms.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="legal-table">
+              <thead>
+                <tr>
+                  <th>Firm</th>
+                  <th>Plan</th>
+                  <th>Members</th>
+                  <th>Cases</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredFirms.map((firm) => (
+                  <tr key={firm.id}>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded bg-navy/10 flex items-center justify-center">
+                          <Building2 className="h-5 w-5 text-navy" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{firm.name}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="status-badge status-active capitalize">{firm.plan_type}</span>
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        {firm.member_count}
+                      </div>
+                    </td>
+                    <td>{firm.case_count}</td>
+                    <td>
+                      <span
+                        className={`status-badge ${
+                          firm.plan_status === "active"
+                            ? "status-active"
+                            : firm.plan_status === "past_due"
+                            ? "status-pending"
+                            : firm.plan_status === "trialing"
+                            ? "status-pending"
+                            : "status-archived"
+                        }`}
+                      >
+                        {firm.plan_status.replace("_", " ")}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(firm.created_at).toLocaleDateString("en-IN")}
+                      </div>
+                    </td>
+                    <td>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Details</DropdownMenuItem>
+                          <DropdownMenuItem>View Users</DropdownMenuItem>
+                          <DropdownMenuItem>View Billing</DropdownMenuItem>
+                          {firm.plan_status === "cancelled" ? (
+                            <DropdownMenuItem className="text-success">
+                              Reactivate
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem className="text-destructive">
+                              Suspend
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            No firms found
+          </div>
+        )}
       </div>
     </div>
   );

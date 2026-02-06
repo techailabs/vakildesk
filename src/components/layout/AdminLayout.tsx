@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import {
   Scale,
@@ -6,14 +6,14 @@ import {
   Building2,
   Users,
   CreditCard,
-  Settings,
   LogOut,
   Menu,
   X,
   Shield,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const adminSidebarItems = [
@@ -25,37 +25,13 @@ const adminSidebarItems = [
 
 export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-          // In production, check if user has admin role
-        } else {
-          setUser(null);
-          navigate("/login");
-        }
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user);
-      } else {
-        navigate("/login");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+  const { user, profile, signOut, loading, isAdmin } = useAuth();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     toast({
       title: "Logged out",
       description: "You have been logged out successfully.",
@@ -63,16 +39,26 @@ export function AdminLayout() {
     navigate("/");
   };
 
-  if (!user) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <Loader2 className="h-8 w-8 animate-spin text-court-red" />
       </div>
     );
   }
 
+  if (!user) {
+    navigate("/login");
+    return null;
+  }
+
+  if (!isAdmin) {
+    navigate("/dashboard");
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-secondary/30">
+    <div className="min-h-screen bg-muted/30">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -83,14 +69,14 @@ export function AdminLayout() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-screen w-64 bg-destructive text-destructive-foreground transform transition-transform lg:translate-x-0 ${
+        className={`fixed top-0 left-0 z-50 h-screen w-64 bg-court-red text-white transform transition-transform lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between p-4 border-b border-destructive-foreground/20">
+        <div className="flex items-center justify-between p-4 border-b border-white/20">
           <Link to="/admin" className="flex items-center gap-2">
             <Shield className="h-7 w-7" />
-            <span className="text-lg font-bold">Admin Panel</span>
+            <span className="text-lg font-bold font-serif">Admin Panel</span>
           </Link>
           <button
             className="lg:hidden"
@@ -109,8 +95,8 @@ export function AdminLayout() {
                 to={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-destructive-foreground/20"
-                    : "hover:bg-destructive-foreground/10"
+                    ? "bg-white/20"
+                    : "hover:bg-white/10"
                 }`}
                 onClick={() => setSidebarOpen(false)}
               >
@@ -121,17 +107,17 @@ export function AdminLayout() {
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-destructive-foreground/20">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/20">
           <Link
             to="/dashboard"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-destructive-foreground/10 mb-2"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-white/10 mb-2"
           >
             <Scale className="h-5 w-5" />
             Back to App
           </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-destructive-foreground/10 w-full"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-white/10 w-full"
           >
             <LogOut className="h-5 w-5" />
             Sign Out
@@ -152,7 +138,7 @@ export function AdminLayout() {
             </button>
             <div className="flex-1" />
             <span className="text-sm text-muted-foreground">
-              Admin: {user?.email}
+              Admin: {profile?.name || user?.email}
             </span>
           </div>
         </header>

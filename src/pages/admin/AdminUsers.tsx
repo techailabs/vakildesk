@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MoreVertical, User, Shield, Users } from "lucide-react";
+import { Search, MoreVertical, User, Shield, Users, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,46 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Mock data
-const users = [
-  {
-    id: 1,
-    name: "Adv. Rajesh Singh",
-    email: "rajesh@singhlaw.com",
-    role: "lawyer_owner",
-    firm: "Singh & Associates",
-    status: "active",
-    lastLogin: "2025-02-02",
-  },
-  {
-    id: 2,
-    name: "Adv. Priya Kapoor",
-    email: "priya@kapoorlaw.com",
-    role: "lawyer_team",
-    firm: "Singh & Associates",
-    status: "active",
-    lastLogin: "2025-02-01",
-  },
-  {
-    id: 3,
-    name: "Mr. Raj Sharma",
-    email: "raj.sharma@email.com",
-    role: "client",
-    firm: "Singh & Associates",
-    status: "active",
-    lastLogin: "2025-01-30",
-  },
-  {
-    id: 4,
-    name: "Admin User",
-    email: "admin@vakildesk.com",
-    role: "admin",
-    firm: null,
-    status: "active",
-    lastLogin: "2025-02-02",
-  },
-];
+import { useAdminUsers } from "@/hooks/useAdmin";
 
 const roleLabels: Record<string, string> = {
   lawyer_owner: "Firm Owner",
@@ -66,32 +27,39 @@ const roleLabels: Record<string, string> = {
 export default function AdminUsers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const { data: users, isLoading } = useAdminUsers();
 
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = (users || []).filter((user) => {
     const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === "all" || user.roles.includes(roleFilter);
     return matchesSearch && matchesRole;
   });
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "admin":
-        return <Shield className="h-4 w-4 text-destructive" />;
-      case "lawyer_owner":
-        return <User className="h-4 w-4 text-primary" />;
-      case "lawyer_team":
-        return <Users className="h-4 w-4 text-accent" />;
-      default:
-        return <User className="h-4 w-4 text-muted-foreground" />;
+  const getRoleIcon = (roles: string[]) => {
+    if (roles.includes("admin")) {
+      return <Shield className="h-4 w-4 text-court-red" />;
+    } else if (roles.includes("lawyer_owner")) {
+      return <User className="h-4 w-4 text-navy" />;
+    } else if (roles.includes("lawyer_team")) {
+      return <Users className="h-4 w-4 text-gold" />;
     }
+    return <User className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  const getPrimaryRole = (roles: string[]) => {
+    if (roles.includes("admin")) return "admin";
+    if (roles.includes("lawyer_owner")) return "lawyer_owner";
+    if (roles.includes("lawyer_team")) return "lawyer_team";
+    if (roles.includes("client")) return "client";
+    return "unknown";
   };
 
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Users</h1>
+        <h1 className="text-2xl font-bold font-serif">Users</h1>
         <p className="text-muted-foreground">Manage all platform users</p>
       </div>
 
@@ -122,85 +90,83 @@ export default function AdminUsers() {
 
       {/* Users Table */}
       <div className="bg-card rounded-lg border border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="legal-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Firm</th>
-                <th>Status</th>
-                <th>Last Login</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-semibold text-primary">
-                          {user.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .slice(0, 2)}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-2">
-                      {getRoleIcon(user.role)}
-                      <span>{roleLabels[user.role]}</span>
-                    </div>
-                  </td>
-                  <td className="text-muted-foreground">
-                    {user.firm || "—"}
-                  </td>
-                  <td>
-                    <span
-                      className={`status-badge ${
-                        user.status === "active"
-                          ? "status-active"
-                          : "status-archived"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="text-muted-foreground">
-                    {new Date(user.lastLogin).toLocaleDateString("en-IN")}
-                  </td>
-                  <td>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Profile</DropdownMenuItem>
-                        <DropdownMenuItem>View Activity</DropdownMenuItem>
-                        <DropdownMenuItem>Reset Password</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Suspend User
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-court-red" />
+          </div>
+        ) : filteredUsers.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="legal-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Role</th>
+                  <th>Firm</th>
+                  <th>Created</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-navy/10 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-navy">
+                            {user.name
+                              ?.split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .slice(0, 2) || "?"}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium">{user.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {user.phone || "No phone"}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        {getRoleIcon(user.roles)}
+                        <span>{roleLabels[getPrimaryRole(user.roles)] || "Unknown"}</span>
+                      </div>
+                    </td>
+                    <td className="text-muted-foreground">
+                      {user.firm_name || "—"}
+                    </td>
+                    <td className="text-muted-foreground">
+                      {new Date(user.created_at).toLocaleDateString("en-IN")}
+                    </td>
+                    <td>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Profile</DropdownMenuItem>
+                          <DropdownMenuItem>View Activity</DropdownMenuItem>
+                          <DropdownMenuItem>Reset Password</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive">
+                            Suspend User
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            No users found
+          </div>
+        )}
       </div>
     </div>
   );

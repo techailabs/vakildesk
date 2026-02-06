@@ -1,47 +1,16 @@
-import { Building2, Users, CreditCard, AlertTriangle } from "lucide-react";
-
-// Mock data
-const stats = {
-  totalFirms: 156,
-  activeFirms: 142,
-  totalUsers: 489,
-  activeSubscriptions: 142,
-  monthlyRevenue: "₹1,24,800",
-  pendingIssues: 3,
-};
-
-const recentFirms = [
-  {
-    id: 1,
-    name: "Singh & Associates",
-    owner: "Adv. Rajesh Singh",
-    plan: "Firm",
-    status: "active",
-    createdAt: "2025-01-28",
-  },
-  {
-    id: 2,
-    name: "Kapoor Law Chambers",
-    owner: "Adv. Priya Kapoor",
-    plan: "Solo",
-    status: "active",
-    createdAt: "2025-01-27",
-  },
-  {
-    id: 3,
-    name: "Verma Legal",
-    owner: "Adv. Amit Verma",
-    plan: "Firm",
-    status: "past_due",
-    createdAt: "2025-01-25",
-  },
-];
+import { Building2, Users, CreditCard, AlertTriangle, Briefcase, Loader2 } from "lucide-react";
+import { useAdminStats, useAdminFirms } from "@/hooks/useAdmin";
 
 export default function AdminDashboard() {
+  const { data: stats, isLoading: statsLoading } = useAdminStats();
+  const { data: firms, isLoading: firmsLoading } = useAdminFirms();
+
+  const recentFirms = firms?.slice(0, 5) || [];
+
   return (
     <div className="animate-fade-in space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <h1 className="text-2xl font-bold font-serif">Admin Dashboard</h1>
         <p className="text-muted-foreground">Overview of all platform activity</p>
       </div>
 
@@ -50,73 +19,84 @@ export default function AdminDashboard() {
         <StatCard
           icon={<Building2 className="h-5 w-5" />}
           label="Total Firms"
-          value={stats.totalFirms.toString()}
-          sublabel={`${stats.activeFirms} active`}
+          value={statsLoading ? "..." : (stats?.totalFirms || 0).toString()}
+          sublabel={`${stats?.activeFirms || 0} active`}
         />
         <StatCard
           icon={<Users className="h-5 w-5" />}
           label="Total Users"
-          value={stats.totalUsers.toString()}
+          value={statsLoading ? "..." : (stats?.totalUsers || 0).toString()}
         />
         <StatCard
-          icon={<CreditCard className="h-5 w-5" />}
-          label="Monthly Revenue"
-          value={stats.monthlyRevenue}
+          icon={<Briefcase className="h-5 w-5" />}
+          label="Total Cases"
+          value={statsLoading ? "..." : (stats?.totalCases || 0).toString()}
           highlight
         />
         <StatCard
           icon={<AlertTriangle className="h-5 w-5" />}
           label="Pending Issues"
-          value={stats.pendingIssues.toString()}
-          warning={stats.pendingIssues > 0}
+          value="0"
         />
       </div>
 
       {/* Recent Firms */}
       <div className="bg-card rounded-lg border border-border">
         <div className="p-6 border-b border-border">
-          <h2 className="text-lg font-semibold">Recent Signups</h2>
+          <h2 className="text-lg font-semibold font-serif">Recent Signups</h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="legal-table">
-            <thead>
-              <tr>
-                <th>Firm</th>
-                <th>Owner</th>
-                <th>Plan</th>
-                <th>Status</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentFirms.map((firm) => (
-                <tr key={firm.id}>
-                  <td className="font-medium">{firm.name}</td>
-                  <td className="text-muted-foreground">{firm.owner}</td>
-                  <td>
-                    <span className="status-badge status-active">{firm.plan}</span>
-                  </td>
-                  <td>
-                    <span
-                      className={`status-badge ${
-                        firm.status === "active"
-                          ? "status-active"
-                          : firm.status === "past_due"
-                          ? "status-pending"
-                          : "status-archived"
-                      }`}
-                    >
-                      {firm.status.replace("_", " ")}
-                    </span>
-                  </td>
-                  <td className="text-muted-foreground">
-                    {new Date(firm.createdAt).toLocaleDateString("en-IN")}
-                  </td>
+        {firmsLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-court-red" />
+          </div>
+        ) : recentFirms.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="legal-table">
+              <thead>
+                <tr>
+                  <th>Firm</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th>Members</th>
+                  <th>Cases</th>
+                  <th>Created</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {recentFirms.map((firm) => (
+                  <tr key={firm.id}>
+                    <td className="font-medium">{firm.name}</td>
+                    <td>
+                      <span className="status-badge status-active capitalize">{firm.plan_type}</span>
+                    </td>
+                    <td>
+                      <span
+                        className={`status-badge ${
+                          firm.plan_status === "active"
+                            ? "status-active"
+                            : firm.plan_status === "past_due"
+                            ? "status-pending"
+                            : "status-archived"
+                        }`}
+                      >
+                        {firm.plan_status.replace("_", " ")}
+                      </span>
+                    </td>
+                    <td className="text-muted-foreground">{firm.member_count}</td>
+                    <td className="text-muted-foreground">{firm.case_count}</td>
+                    <td className="text-muted-foreground">
+                      {new Date(firm.created_at).toLocaleDateString("en-IN")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            No firms found
+          </div>
+        )}
       </div>
     </div>
   );
