@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Scale, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,44 +14,27 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, roles, loading: authLoading, isAdmin, isClient } = useAuth();
 
+  // Redirect if already logged in and roles are loaded
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        redirectBasedOnRole(session.user.id);
-      }
-    });
-  }, []);
-
-  const redirectBasedOnRole = async (userId: string) => {
-    // Check user roles
-    const { data: roles } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId);
-
-    if (roles && roles.length > 0) {
-      const userRoles = roles.map(r => r.role);
-      
-      if (userRoles.includes('admin')) {
-        navigate("/admin");
-      } else if (userRoles.includes('client')) {
-        navigate("/client");
+    if (!authLoading && user && roles.length > 0) {
+      if (isAdmin) {
+        navigate("/admin", { replace: true });
+      } else if (isClient) {
+        navigate("/client", { replace: true });
       } else {
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       }
-    } else {
-      navigate("/dashboard");
     }
-  };
+  }, [authLoading, user, roles, isAdmin, isClient, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -62,10 +46,7 @@ export default function Login() {
         description: "You have been logged in successfully.",
       });
 
-      // Redirect based on user role
-      if (data.user) {
-        await redirectBasedOnRole(data.user.id);
-      }
+      // The useEffect above will handle redirect once roles load
     } catch (error: any) {
       toast({
         title: "Login failed",
@@ -76,6 +57,15 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  // Show loading if auth is still loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
@@ -93,7 +83,7 @@ export default function Login() {
         <div className="w-full max-w-md">
           <div className="bg-card rounded-lg border border-border p-8 shadow-sm">
             <div className="flex items-center gap-2 justify-center mb-8">
-              <Scale className="h-8 w-8 text-gold" />
+              <Scale className="h-8 w-8 text-accent" />
               <span className="text-2xl font-bold text-foreground font-serif">VakilDesk</span>
             </div>
 
@@ -120,7 +110,7 @@ export default function Login() {
                   <Label htmlFor="password">Password</Label>
                   <Link
                     to="/forgot-password"
-                    className="text-sm text-gold hover:underline"
+                    className="text-sm text-accent hover:underline"
                   >
                     Forgot password?
                   </Link>
@@ -135,7 +125,7 @@ export default function Login() {
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-gold text-navy-dark hover:bg-gold-light font-semibold" disabled={loading}>
+              <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-gold-light font-semibold" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -162,7 +152,7 @@ export default function Login() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Don't have an account?{" "}
-              <Link to="/signup" className="text-gold hover:underline font-medium">
+              <Link to="/signup" className="text-accent hover:underline font-medium">
                 Start free trial
               </Link>
             </p>
