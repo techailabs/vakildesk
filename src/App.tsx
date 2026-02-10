@@ -36,6 +36,10 @@ import AdminFirms from "@/pages/admin/AdminFirms";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminSubscriptions from "@/pages/admin/AdminSubscriptions";
 
+// Court GEO Pages
+import DelhiHighCourt from "@/pages/courts/DelhiHighCourt";
+import GurgaonDistrictCourt from "@/pages/courts/GurgaonDistrictCourt";
+
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +60,8 @@ const App = () => (
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/courts/delhi-high-court" element={<DelhiHighCourt />} />
+              <Route path="/courts/gurgaon-district-court" element={<GurgaonDistrictCourt />} />
             </Route>
 
             {/* Auth Routes */}
