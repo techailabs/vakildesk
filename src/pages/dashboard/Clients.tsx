@@ -28,12 +28,14 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useClients } from "@/hooks/useClients";
+import { InviteClientDialog } from "@/components/invite/InviteClientDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Clients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteLinkOpen, setInviteLinkOpen] = useState(false);
   const [newClientName, setNewClientName] = useState("");
   const [newClientEmail, setNewClientEmail] = useState("");
   const [newClientPhone, setNewClientPhone] = useState("");
@@ -80,9 +82,14 @@ export default function Clients() {
             Manage your client relationships
           </p>
         </div>
-        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setInviteLinkOpen(true)}>
+            <Mail className="h-4 w-4 mr-2" />
+            Invite Client
+          </Button>
+          <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gold text-navy-dark hover:bg-gold-light font-semibold">
+            <Button variant="cta">
               <Plus className="h-4 w-4 mr-2" />
               Add Client
             </Button>
@@ -149,7 +156,10 @@ export default function Clients() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      <InviteClientDialog open={inviteLinkOpen} onOpenChange={setInviteLinkOpen} />
 
       {/* Search */}
       <div className="relative max-w-md">

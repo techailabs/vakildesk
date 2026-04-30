@@ -16,6 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAdminUsers } from "@/hooks/useAdmin";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const roleLabels: Record<string, string> = {
   lawyer_owner: "Firm Owner",
@@ -28,6 +31,34 @@ export default function AdminUsers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const { data: users, isLoading } = useAdminUsers();
+  const { toast } = useToast();
+  const qc = useQueryClient();
+
+  const setRole = async (userId: string, role: string) => {
+    const { error } = await supabase.rpc("admin_set_user_role", {
+      _target_user: userId,
+      _role: role as any,
+    });
+    if (error) {
+      toast({ title: "Failed to update role", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Role updated" });
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    }
+  };
+
+  const setActive = async (userId: string, active: boolean) => {
+    const { error } = await supabase.rpc("admin_set_user_active", {
+      _target_user: userId,
+      _active: active,
+    });
+    if (error) {
+      toast({ title: "Failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: active ? "User activated" : "User deactivated" });
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    }
+  };
 
   const filteredUsers = (users || []).filter((user) => {
     const matchesSearch =
@@ -148,11 +179,26 @@ export default function AdminUsers() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Profile</DropdownMenuItem>
-                          <DropdownMenuItem>View Activity</DropdownMenuItem>
-                          <DropdownMenuItem>Reset Password</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
-                            Suspend User
+                          <DropdownMenuItem onClick={() => setRole(user.id, "admin")}>
+                            Make Admin
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setRole(user.id, "lawyer_owner")}>
+                            Make Lawyer (Owner)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setRole(user.id, "lawyer_team")}>
+                            Make Lawyer (Team)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setRole(user.id, "client")}>
+                            Make Client
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => setActive(user.id, false)}
+                          >
+                            Deactivate User
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setActive(user.id, true)}>
+                            Reactivate User
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
