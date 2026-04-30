@@ -50,9 +50,11 @@ export function useCases() {
 
   const createCase = useMutation({
     mutationFn: async (newCase: Omit<Case, 'id' | 'created_at' | 'updated_at' | 'clients'>) => {
+      // Strip nested join field if present
+      const { clients: _omit, ...payload } = newCase as any;
       const { data, error } = await supabase
         .from('cases')
-        .insert(newCase)
+        .insert(payload)
         .select()
         .single();
 
