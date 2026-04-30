@@ -13,40 +13,9 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
-
-// Mock client case data - In production, this would come from Supabase
-const clientCase = {
-  id: 1,
-  title: "Property Dispute - ABC vs. XYZ",
-  caseNumber: "CS/123/2025",
-  court: "District Court, Saket",
-  lawyerName: "Adv. Rajesh Kumar",
-  status: "Active",
-  stage: "Evidence",
-  nextHearing: "2026-02-15",
-  lastUpdated: "2026-02-01",
-};
-
-const caseTimeline = [
-  {
-    id: 1,
-    date: "2026-02-01",
-    event: "Arguments heard",
-    description: "Plaintiff arguments completed. Next: Defendant arguments.",
-  },
-  {
-    id: 2,
-    date: "2026-01-15",
-    event: "Evidence submitted",
-    description: "Property documents and sale deed submitted to court.",
-  },
-  {
-    id: 3,
-    date: "2025-12-20",
-    event: "Case filed",
-    description: "Suit filed for specific performance of contract.",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { SEO } from "@/components/SEO";
 
 export default function ClientDashboard() {
   const { user, profile, loading, signOut, isClient } = useAuth();
@@ -58,21 +27,60 @@ export default function ClientDashboard() {
     }
   }, [loading, user, navigate]);
 
-  if (loading) {
+  // Load only cases the client is linked to (RLS enforces this).
+  // Note: we exclude internal_notes from selection so client never receives it.
+  const { data: cases, isLoading: casesLoading } = useQuery({
+    queryKey: ["client-cases", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cases")
+        .select(
+          "id, case_title, case_number, court, courtroom, stage, status, next_hearing_date, notes, updated_at",
+        )
+        .order("next_hearing_date", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: sharedDocs } = useQuery({
+    queryKey: ["client-docs", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("documents")
+        .select("id, file_name, document_type, created_at, file_url, case_id")
+        .eq("shared_with_client", true)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  if (loading || casesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <Loader2 className="h-8 w-8 animate-spin text-gold" />
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
       </div>
     );
   }
 
+  const primaryCase = cases?.[0];
+  const daysToHearing = primaryCase?.next_hearing_date
+    ? Math.ceil(
+        (new Date(primaryCase.next_hearing_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+      )
+    : null;
+
   return (
     <div className="min-h-screen bg-muted/30">
+      <SEO title="My Case Portal" description="Your VakilDesk client portal." noindex />
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background border-b border-border">
         <div className="container flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <Scale className="h-7 w-7 text-gold" />
+            <Scale className="h-7 w-7 text-accent" />
             <span className="text-lg font-bold font-serif">VakilDesk</span>
           </Link>
           <div className="flex items-center gap-4">
@@ -98,147 +106,121 @@ export default function ClientDashboard() {
         <div className="animate-fade-in space-y-8 max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center">
-            <h1 className="text-2xl font-bold font-serif">Your Case Status</h1>
+            <h1 className="text-2xl font-bold font-serif">My Cases</h1>
             <p className="text-muted-foreground">
-              View your case details and upcoming hearings
+              View your case status, next hearings, and documents shared by your lawyer
             </p>
           </div>
 
-          {/* Case Overview Card */}
-          <div className="bg-card rounded-lg border border-border p-6">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-              <div>
-                <h2 className="text-xl font-bold font-serif">{clientCase.title}</h2>
-                <p className="text-sm text-muted-foreground">
-                  Case No: {clientCase.caseNumber}
-                </p>
-              </div>
-              <span className="status-badge status-active">{clientCase.status}</span>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
-              <InfoRow label="Court" value={clientCase.court} />
-              <InfoRow label="Your Lawyer" value={clientCase.lawyerName} />
-              <InfoRow label="Current Stage" value={clientCase.stage} />
-              <InfoRow label="Last Updated" value={new Date(clientCase.lastUpdated).toLocaleDateString("en-IN")} />
-            </div>
-
-            {/* Next Hearing Highlight */}
-            <div className="bg-gold/10 border border-gold/30 rounded-lg p-4">
-              <div className="flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-gold" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Next Hearing Date</p>
+          {/* Next Hearing Countdown */}
+          {primaryCase?.next_hearing_date && (
+            <div className="bg-accent/10 border border-accent/30 rounded-lg p-6">
+              <div className="flex items-center gap-4">
+                <Calendar className="h-8 w-8 text-accent" />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Next Hearing</p>
                   <p className="text-lg font-bold">
-                    {new Date(clientCase.nextHearing).toLocaleDateString("en-IN", {
+                    {new Date(primaryCase.next_hearing_date).toLocaleDateString("en-IN", {
                       weekday: "long",
                       year: "numeric",
                       month: "long",
                       day: "numeric",
                     })}
                   </p>
+                  {daysToHearing !== null && (
+                    <p className="text-sm font-medium text-accent">
+                      {daysToHearing > 0
+                        ? `${daysToHearing} day${daysToHearing === 1 ? "" : "s"} to go`
+                        : daysToHearing === 0
+                          ? "Today"
+                          : "Past hearing"}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* AI Explain My Case */}
-          <div className="bg-gold/5 border border-gold/20 rounded-lg p-6">
-            <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-full bg-gold/20 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="h-6 w-6 text-gold" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold font-serif mb-2">
-                  Understand Your Case
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Click below to get a simple, jargon-free explanation of your case 
-                  status, what happened at the last hearing, and what to expect next.
-                </p>
-                <Button className="bg-gold text-navy-dark hover:bg-gold-light font-semibold">
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Explain My Case
-                </Button>
-              </div>
-            </div>
-            <div className="ai-disclaimer mt-4">
-              This explanation is for your understanding only and does not constitute 
-              legal advice. Please consult your lawyer for legal guidance.
-            </div>
-          </div>
-
-          {/* Case Timeline */}
-          <div className="bg-card rounded-lg border border-border">
-            <div className="section-header px-6 pt-6">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-navy" />
-                <h2 className="text-lg font-semibold font-serif">Case Timeline</h2>
-              </div>
-            </div>
-            <div className="p-6 pt-0">
-              <div className="space-y-4">
-                {caseTimeline.map((event, index) => (
-                  <div key={event.id} className="relative pl-6">
-                    {index !== caseTimeline.length - 1 && (
-                      <div className="absolute left-[7px] top-6 w-0.5 h-full bg-border" />
-                    )}
-                    <div className="absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full bg-navy border-2 border-background" />
-                    <div className="pb-4">
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(event.date).toLocaleDateString("en-IN")}
-                      </p>
-                      <h4 className="font-medium">{event.event}</h4>
-                      <p className="text-sm text-muted-foreground">{event.description}</p>
+          {/* Cases List */}
+          <div className="space-y-4">
+            {cases && cases.length > 0 ? (
+              cases.map((c: any) => (
+                <div key={c.id} className="bg-card rounded-lg border border-border p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h2 className="text-lg font-bold font-serif">{c.case_title}</h2>
+                      {c.case_number && (
+                        <p className="text-sm text-muted-foreground">Case No: {c.case_number}</p>
+                      )}
                     </div>
+                    <span className="status-badge status-active">{c.status}</span>
                   </div>
-                ))}
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <InfoRow label="Court" value={c.court || "—"} />
+                    <InfoRow label="Stage" value={c.stage || "—"} />
+                    <InfoRow
+                      label="Next Hearing"
+                      value={
+                        c.next_hearing_date
+                          ? new Date(c.next_hearing_date).toLocaleDateString("en-IN")
+                          : "—"
+                      }
+                    />
+                    <InfoRow
+                      label="Last Updated"
+                      value={new Date(c.updated_at).toLocaleDateString("en-IN")}
+                    />
+                  </div>
+                  {c.notes && (
+                    <div className="mt-4 p-3 bg-muted rounded-md text-sm text-muted-foreground">
+                      <p className="font-medium text-foreground mb-1">Update from your lawyer:</p>
+                      {c.notes}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="bg-card rounded-lg border border-border p-12 text-center">
+                <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
+                <h3 className="font-semibold mb-2">No cases yet</h3>
+                <p className="text-sm text-muted-foreground">
+                  When your lawyer links you to a case, it will appear here.
+                </p>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Shared Documents */}
           <div className="bg-card rounded-lg border border-border">
             <div className="section-header px-6 pt-6">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-navy" />
+                <FileText className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-semibold font-serif">Shared Documents</h2>
               </div>
-              <Button variant="outline" size="sm">
-                Upload Document
-              </Button>
             </div>
             <div className="p-6 pt-0">
-              <div className="space-y-3">
-                <DocumentRow
-                  name="Court Order - 01 Feb 2026"
-                  type="Order"
-                  date="2026-02-01"
-                />
-                <DocumentRow
-                  name="Property Documents"
-                  type="Evidence"
-                  date="2026-01-15"
-                />
-                <DocumentRow
-                  name="Sale Deed Copy"
-                  type="Evidence"
-                  date="2025-12-20"
-                />
-              </div>
+              {sharedDocs && sharedDocs.length > 0 ? (
+                <div className="space-y-3">
+                  {sharedDocs.map((d: any) => (
+                    <DocumentRow
+                      key={d.id}
+                      name={d.file_name}
+                      type={d.document_type || "Document"}
+                      date={d.created_at}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  No documents shared yet.
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Contact Lawyer */}
-          <div className="bg-muted/50 rounded-lg p-6 text-center">
-            <h3 className="font-semibold mb-2 font-serif">Have Questions?</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Contact your lawyer for legal advice and case updates.
-            </p>
-            <Button variant="outline">
-              Contact {clientCase.lawyerName}
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
+          <div className="ai-disclaimer">
+            This portal shows only what your lawyer chooses to share. It does not constitute legal
+            advice. Please contact your lawyer for legal guidance.
           </div>
         </div>
       </main>

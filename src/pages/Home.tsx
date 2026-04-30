@@ -18,10 +18,41 @@ import {
   Clock,
   Star,
 } from "lucide-react";
+import { SEO, SOFTWARE_SCHEMA, ORG_SCHEMA, buildFAQSchema } from "@/components/SEO";
+
+const HOME_FAQS = [
+  {
+    question: "Is VakilDesk compliant with Indian data laws?",
+    answer:
+      "Yes. VakilDesk follows Indian data protection norms, with bank-grade encryption (TLS in transit, AES-256 at rest) and complete data isolation per firm.",
+  },
+  {
+    question: "Can solo advocates use VakilDesk?",
+    answer:
+      "Absolutely. VakilDesk is built for solo practitioners as well as multi-advocate firms. The Solo plan starts at ₹499/month.",
+  },
+  {
+    question: "Does VakilDesk work for Delhi High Court and District Courts?",
+    answer:
+      "Yes. VakilDesk supports advocates practising at the Supreme Court, all High Courts (including Delhi HC), and District Courts across India including Gurgaon, Saket, Patiala House, and Tis Hazari.",
+  },
+  {
+    question: "Can clients see my internal notes?",
+    answer:
+      "No. The client portal shows only the case status, next hearing date, and documents you explicitly mark as shared. Internal notes and billing remain private to the firm.",
+  },
+];
 
 export default function Home() {
   return (
     <div className="animate-fade-in">
+      <SEO
+        title="VakilDesk: AI-Powered Legal Practice Management for Indian Lawyers"
+        description="The digital backbone for modern Indian law firms. Automate court tracking, manage cases, and run a world-class client portal — all in one secure platform."
+        canonicalPath="/"
+        keywords="legal practice management india, lawyer software india, case management software, advocate diary, delhi high court software, ai legal drafting"
+        jsonLd={[ORG_SCHEMA, SOFTWARE_SCHEMA, buildFAQSchema(HOME_FAQS)]}
+      />
       {/* Hero Section — Authority-First Design */}
       <section className="relative py-24 md:py-36 bg-primary overflow-hidden">
         {/* Subtle pattern overlay */}

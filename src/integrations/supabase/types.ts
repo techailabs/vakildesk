@@ -81,6 +81,48 @@ export type Database = {
           },
         ]
       }
+      case_parties: {
+        Row: {
+          case_id: string
+          client_id: string | null
+          created_at: string
+          id: string
+          party_name: string
+          party_role: Database["public"]["Enums"]["party_role"]
+        }
+        Insert: {
+          case_id: string
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          party_name: string
+          party_role: Database["public"]["Enums"]["party_role"]
+        }
+        Update: {
+          case_id?: string
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          party_name?: string
+          party_role?: Database["public"]["Enums"]["party_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_parties_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_parties_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cases: {
         Row: {
           case_number: string | null
@@ -93,6 +135,7 @@ export type Database = {
           created_by: string
           firm_id: string
           id: string
+          internal_notes: string | null
           judge: string | null
           next_hearing_date: string | null
           notes: string | null
@@ -111,6 +154,7 @@ export type Database = {
           created_by: string
           firm_id: string
           id?: string
+          internal_notes?: string | null
           judge?: string | null
           next_hearing_date?: string | null
           notes?: string | null
@@ -129,6 +173,7 @@ export type Database = {
           created_by?: string
           firm_id?: string
           id?: string
+          internal_notes?: string | null
           judge?: string | null
           next_hearing_date?: string | null
           notes?: string | null
@@ -146,6 +191,69 @@ export type Database = {
           },
           {
             foreignKeyName: "cases_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "firms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          case_id: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          expires_at: string
+          firm_id: string
+          id: string
+          invited_by: string
+          status: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          case_id?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          expires_at?: string
+          firm_id: string
+          id?: string
+          invited_by: string
+          status?: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          case_id?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          expires_at?: string
+          firm_id?: string
+          id?: string
+          invited_by?: string
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invitations_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invitations_firm_id_fkey"
             columns: ["firm_id"]
             isOneToOne: false
             referencedRelation: "firms"
@@ -200,6 +308,7 @@ export type Database = {
           file_size: number | null
           file_url: string
           id: string
+          shared_with_client: boolean
           uploaded_by: string
         }
         Insert: {
@@ -210,6 +319,7 @@ export type Database = {
           file_size?: number | null
           file_url: string
           id?: string
+          shared_with_client?: boolean
           uploaded_by: string
         }
         Update: {
@@ -220,6 +330,7 @@ export type Database = {
           file_size?: number | null
           file_url?: string
           id?: string
+          shared_with_client?: boolean
           uploaded_by?: string
         }
         Relationships: [
@@ -300,21 +411,27 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          email: string | null
           id: string
+          is_active: boolean
           name: string
           phone: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id: string
+          is_active?: boolean
           name: string
           phone?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
+          is_active?: boolean
           name?: string
           phone?: string | null
           updated_at?: string
@@ -391,12 +508,40 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_client_invitation: { Args: { _token: string }; Returns: Json }
+      admin_set_user_active: {
+        Args: { _active: boolean; _target_user: string }
+        Returns: undefined
+      }
+      admin_set_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _target_user: string
+        }
+        Returns: undefined
+      }
+      get_invitation_by_token: {
+        Args: { _token: string }
+        Returns: {
+          client_email: string
+          client_name: string
+          expires_at: string
+          firm_id: string
+          firm_name: string
+          id: string
+          status: string
+        }[]
+      }
       get_user_firm_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_case_client: {
+        Args: { _case_id: string; _user_id: string }
         Returns: boolean
       }
       is_firm_member: {
@@ -406,6 +551,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "lawyer_owner" | "lawyer_team" | "client"
+      party_role: "petitioner" | "respondent" | "other"
       plan_status: "active" | "past_due" | "cancelled" | "trialing"
       plan_type: "solo" | "firm"
     }
@@ -536,6 +682,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "lawyer_owner", "lawyer_team", "client"],
+      party_role: ["petitioner", "respondent", "other"],
       plan_status: ["active", "past_due", "cancelled", "trialing"],
       plan_type: ["solo", "firm"],
     },

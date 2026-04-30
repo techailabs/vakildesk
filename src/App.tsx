@@ -41,6 +41,8 @@ import DelhiHighCourt from "@/pages/courts/DelhiHighCourt";
 import GurgaonDistrictCourt from "@/pages/courts/GurgaonDistrictCourt";
 
 import NotFound from "@/pages/NotFound";
+import AcceptInvite from "@/pages/AcceptInvite";
+import { RoleGuard } from "@/components/RoleGuard";
 
 const queryClient = new QueryClient();
 
@@ -67,9 +69,17 @@ const App = () => (
             {/* Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/invite/:token" element={<AcceptInvite />} />
 
             {/* Dashboard Routes */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route
+              path="/dashboard"
+              element={
+                <RoleGuard allow={["lawyer_owner", "lawyer_team", "admin"]}>
+                  <DashboardLayout />
+                </RoleGuard>
+              }
+            >
               <Route index element={<Dashboard />} />
               <Route path="cases" element={<Cases />} />
               <Route path="cases/new" element={<NewCase />} />
@@ -80,10 +90,24 @@ const App = () => (
             </Route>
 
             {/* Client Dashboard Route */}
-            <Route path="/client" element={<ClientDashboard />} />
+            <Route
+              path="/client"
+              element={
+                <RoleGuard allow={["client"]} redirectForbidden={false}>
+                  <ClientDashboard />
+                </RoleGuard>
+              }
+            />
 
             {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route
+              path="/admin"
+              element={
+                <RoleGuard allow={["admin"]} redirectForbidden={false}>
+                  <AdminLayout />
+                </RoleGuard>
+              }
+            >
               <Route index element={<AdminDashboard />} />
               <Route path="firms" element={<AdminFirms />} />
               <Route path="users" element={<AdminUsers />} />
