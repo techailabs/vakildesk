@@ -80,6 +80,11 @@ export default {
           light: "hsl(var(--gold-light))",
           dark: "hsl(var(--gold-dark))",
         },
+        emerald: {
+          DEFAULT: "hsl(var(--emerald))",
+          light: "hsl(var(--emerald-light))",
+          dark: "hsl(var(--emerald-dark))",
+        },
         charcoal: "hsl(var(--charcoal))",
         "court-red": "hsl(var(--court-red))",
         "off-white": "hsl(var(--off-white))",
