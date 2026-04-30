@@ -79,9 +79,10 @@ export function useCases() {
 
   const updateCase = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Case> & { id: string }) => {
+      const { clients: _omit, ...payload } = updates as any;
       const { data, error } = await supabase
         .from('cases')
-        .update(updates)
+        .update(payload)
         .eq('id', id)
         .select()
         .single();
