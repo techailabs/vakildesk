@@ -11,6 +11,7 @@ export interface Document {
   file_url: string;
   file_size: number | null;
   document_type: string | null;
+  shared_with_client: boolean;
   created_at: string;
   cases?: {
     id: string;
@@ -47,9 +48,32 @@ export function useDocuments(caseId?: string) {
     enabled: !!firm?.id,
   });
 
+  const toggleShared = useMutation({
+    mutationFn: async ({ id, shared }: { id: string; shared: boolean }) => {
+      const { error } = await (supabase as any)
+        .from('documents')
+        .update({ shared_with_client: shared })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      toast({
+        title: vars.shared ? 'Shared with client' : 'Hidden from client',
+        description: vars.shared
+          ? 'Client can now view this document in their portal.'
+          : 'This document is now private to the firm.',
+      });
+    },
+    onError: (e: Error) => {
+      toast({ title: 'Update failed', description: e.message, variant: 'destructive' });
+    },
+  });
+
   return {
     documents: documents ?? [],
     isLoading,
     error,
+    toggleShared,
   };
 }
