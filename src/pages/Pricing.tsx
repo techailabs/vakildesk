@@ -7,10 +7,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { SEO, SOFTWARE_SCHEMA } from "@/components/SEO";
 
 export default function Pricing() {
   return (
     <div className="animate-fade-in">
+      <SEO
+        title="Pricing — Solo ₹499/mo · Firm ₹799/mo"
+        description="Transparent pricing for Indian lawyers. Solo at ₹499/month, Firm at ₹799/month with team add-ons. 14-day free trial. No credit card."
+        canonicalPath="/pricing"
+        keywords="lawyer software pricing india, advocate software cost, legal saas pricing"
+        jsonLd={SOFTWARE_SCHEMA}
+      />
       {/* Hero */}
       <section className="py-16 md:py-24 bg-primary text-primary-foreground">
         <div className="container">
@@ -82,7 +90,7 @@ export default function Pricing() {
                 <PricingFeature>Priority support</PricingFeature>
               </ul>
               <Link to="/signup">
-                <Button className="w-full bg-accent text-accent-foreground hover:bg-gold-light">
+                <Button variant="cta" className="w-full">
                   Start Free Trial
                 </Button>
               </Link>
@@ -203,7 +211,7 @@ export default function Pricing() {
             14 days free. No credit card required. Cancel anytime.
           </p>
           <Link to="/signup">
-            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-gold-light">
+            <Button size="lg" variant="cta">
               Get Started Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>

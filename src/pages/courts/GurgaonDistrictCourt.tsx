@@ -11,10 +11,22 @@ import {
   Scale,
   Gavel,
 } from "lucide-react";
+import { SEO, buildBreadcrumbSchema } from "@/components/SEO";
 
 export default function GurgaonDistrictCourt() {
   return (
     <div className="animate-fade-in">
+      <SEO
+        title="Gurgaon District Court Case Management for Lawyers"
+        description="Digital court diary for Gurugram advocates. Track civil, criminal, family, MACT, RERA and consumer matters at Gurgaon District Court and Haryana courts."
+        canonicalPath="/courts/gurgaon-district-court"
+        keywords="gurgaon district court software, gurugram advocate, haryana rera, mact gurgaon, consumer forum gurugram"
+        jsonLd={buildBreadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Courts", path: "/" },
+          { name: "Gurgaon District Court", path: "/courts/gurgaon-district-court" },
+        ])}
+      />
       {/* Hero */}
       <section className="py-20 md:py-28 bg-primary">
         <div className="container">
@@ -33,7 +45,7 @@ export default function GurgaonDistrictCourt() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link to="/signup">
-                <Button size="lg" className="bg-accent text-primary hover:bg-gold-light font-semibold h-12 px-8">
+                <Button size="lg" variant="cta" className="h-12 px-8">
                   Start Free Trial
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -150,7 +162,7 @@ export default function GurgaonDistrictCourt() {
             14 days free. Built for Gurugram district court advocates.
           </p>
           <Link to="/signup">
-            <Button size="lg" className="bg-accent text-primary hover:bg-gold-light font-semibold h-12 px-8">
+            <Button size="lg" variant="cta" className="h-12 px-8">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
