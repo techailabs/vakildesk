@@ -15,6 +15,7 @@ export interface Case {
   stage: string | null;
   status: string;
   notes: string | null;
+  internal_notes: string | null;
   client_id: string | null;
   firm_id: string;
   created_by: string;

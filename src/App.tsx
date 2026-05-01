@@ -24,6 +24,7 @@ import Signup from "@/pages/auth/Signup";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import Cases from "@/pages/dashboard/Cases";
 import NewCase from "@/pages/dashboard/NewCase";
+import CaseDetail from "@/pages/dashboard/CaseDetail";
 import Clients from "@/pages/dashboard/Clients";
 import Documents from "@/pages/dashboard/Documents";
 import Team from "@/pages/dashboard/Team";
@@ -83,6 +84,7 @@ const App = () => (
               <Route index element={<Dashboard />} />
               <Route path="cases" element={<Cases />} />
               <Route path="cases/new" element={<NewCase />} />
+              <Route path="cases/:id" element={<CaseDetail />} />
               <Route path="clients" element={<Clients />} />
               <Route path="documents" element={<Documents />} />
               <Route path="team" element={<Team />} />
