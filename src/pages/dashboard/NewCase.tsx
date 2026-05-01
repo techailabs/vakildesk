@@ -52,6 +52,7 @@ export default function NewCase() {
   const [nextHearing, setNextHearing] = useState("");
   const [clientId, setClientId] = useState("");
   const [notes, setNotes] = useState("");
+  const [internalNotes, setInternalNotes] = useState("");
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -85,10 +86,11 @@ export default function NewCase() {
         next_hearing_date: nextHearing || null,
         client_id: clientId || null,
         notes: notes || null,
+        internal_notes: internalNotes || null,
         firm_id: firm.id,
         created_by: user.id,
         status: 'active',
-      });
+      } as any);
 
       navigate("/dashboard/cases");
     } catch (error) {
@@ -264,7 +266,7 @@ export default function NewCase() {
           <div className="space-y-4 pt-4 border-t border-border">
             <h2 className="text-lg font-semibold font-serif">Additional Notes</h2>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes">Client-Visible Notes (Optional)</Label>
               <Textarea
                 id="notes"
                 placeholder="Add any additional notes about the case..."
@@ -272,6 +274,28 @@ export default function NewCase() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">
+                These notes can be shared with the client through the portal.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="internalNotes" className="flex items-center gap-2">
+                Internal Notes (Firm Only)
+                <span className="px-2 py-0.5 text-[10px] font-semibold rounded bg-destructive/10 text-destructive">
+                  PRIVATE
+                </span>
+              </Label>
+              <Textarea
+                id="internalNotes"
+                placeholder="Strategy, opposing counsel notes, billing reminders... never visible to clients."
+                rows={4}
+                value={internalNotes}
+                onChange={(e) => setInternalNotes(e.target.value)}
+                className="border-destructive/30 focus-visible:ring-destructive/40"
+              />
+              <p className="text-xs text-muted-foreground">
+                🔒 Only your firm members can see these notes — never shared with clients.
+              </p>
             </div>
           </div>
 
@@ -280,7 +304,7 @@ export default function NewCase() {
             <Button 
               type="submit" 
               disabled={loading}
-              className="bg-gold text-navy-dark hover:bg-gold-light font-semibold"
+              variant="cta"
             >
               {loading ? (
                 <>
