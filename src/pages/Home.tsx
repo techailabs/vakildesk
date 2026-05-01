@@ -454,6 +454,29 @@ function WhyCard({ icon, title }: { icon: React.ReactNode; title: string }) {
   );
 }
 
+function StepCard({
+  step,
+  icon,
+  title,
+  description,
+}: {
+  step: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="relative p-8 rounded-lg border border-border bg-card hover:border-accent/40 transition-colors">
+      <span className="absolute -top-4 left-6 px-3 py-1 text-xs font-bold tracking-widest bg-primary text-primary-foreground rounded">
+        STEP {step}
+      </span>
+      <div className="text-accent mb-4 mt-2">{icon}</div>
+      <h3 className="text-lg font-bold font-serif mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
 function FeatureCard({
   icon,
   title,
