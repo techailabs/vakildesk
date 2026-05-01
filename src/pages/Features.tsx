@@ -12,10 +12,17 @@ import {
   Sparkles,
   Building2,
 } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 export default function Features() {
   return (
     <div className="animate-fade-in">
+      <SEO
+        title="Features — Case, Hearing, Document & Client Management"
+        description="Every feature designed for Indian advocates: case diary, hearing reminders, document storage, client portal, firm collaboration, and AI assistance."
+        canonicalPath="/features"
+        keywords="legal case management features, lawyer hearing reminders, advocate document storage, indian law firm software"
+      />
       {/* Hero */}
       <section className="py-16 md:py-24 bg-primary text-primary-foreground">
         <div className="container">
@@ -160,7 +167,7 @@ export default function Features() {
             Try VakilDesk free for 14 days. No credit card required.
           </p>
           <Link to="/signup">
-            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-gold-light font-semibold">
+            <Button size="lg" variant="cta">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
