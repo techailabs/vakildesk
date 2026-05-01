@@ -11,10 +11,17 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 export default function AIFeatures() {
   return (
     <div className="animate-fade-in">
+      <SEO
+        title="AI for Indian Lawyers — Summaries, Drafts & Client Explanations"
+        description="AI that helps Indian advocates summarise case files, extract court directions, draft routine documents, and explain cases to clients. Not legal advice."
+        canonicalPath="/ai-features"
+        keywords="ai legal assistant india, ai case summary, ai legal drafting, ai for lawyers"
+      />
       {/* Hero */}
       <section className="py-16 md:py-24 bg-primary text-primary-foreground">
         <div className="container">
@@ -219,7 +226,7 @@ export default function AIFeatures() {
             AI features are included in all plans. Start your 14-day free trial today.
           </p>
           <Link to="/signup">
-            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-gold-light font-semibold">
+            <Button size="lg" variant="cta">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
