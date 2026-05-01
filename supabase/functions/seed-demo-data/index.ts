@@ -295,7 +295,37 @@ Deno.serve(async (req) => {
                   file_url: 'https://example.com/docs/brief.pdf',
                   document_type: 'misc',
                   file_size: 1024000,
+                  shared_with_client: true,
                 });
+
+              // Set internal notes (private to firm) so privacy tests pass
+              await supabaseAdmin
+                .from('cases')
+                .update({
+                  internal_notes:
+                    'PRIVATE: Strategy memo — opposing counsel relies on Section 17. Clients must not see this.',
+                })
+                .eq('id', caseItem.id);
+
+              // Link client user to this case via case_parties for privacy testing
+              if (clientUser) {
+                const { data: clientRow } = await supabaseAdmin
+                  .from('clients')
+                  .select('id')
+                  .eq('user_id', clientUser.id)
+                  .eq('firm_id', firm.id)
+                  .maybeSingle();
+                if (clientRow) {
+                  await supabaseAdmin
+                    .from('case_parties')
+                    .insert({
+                      case_id: caseItem.id,
+                      client_id: clientRow.id,
+                      party_role: 'petitioner',
+                      party_name: 'ABC Corporation (Demo)',
+                    });
+                }
+              }
             }
           }
         }
