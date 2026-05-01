@@ -1,8 +1,15 @@
 import { AlertTriangle } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 export default function Privacy() {
   return (
     <div className="animate-fade-in">
+      <SEO
+        title="Privacy, Disclaimer & Terms"
+        description="VakilDesk privacy policy, AI disclaimer, and terms of service. We do not provide legal advice. Your data is encrypted and never used to train AI models."
+        canonicalPath="/privacy"
+        noindex={false}
+      />
       {/* Hero */}
       <section className="py-16 bg-primary text-primary-foreground">
         <div className="container">
