@@ -53,7 +53,7 @@ export default function Cases() {
           </p>
         </div>
         <Link to="/dashboard/cases/new">
-          <Button className="bg-gold text-navy-dark hover:bg-gold-light font-semibold">
+          <Button variant="cta">
             <Plus className="h-4 w-4 mr-2" />
             Add New Case
           </Button>
@@ -199,7 +199,7 @@ export default function Cases() {
             <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-30" />
             <p>No cases found matching your criteria</p>
             <Link to="/dashboard/cases/new">
-              <Button className="mt-4 bg-gold text-navy-dark hover:bg-gold-light">
+              <Button variant="cta" className="mt-4">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Your First Case
               </Button>
