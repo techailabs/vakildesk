@@ -17,6 +17,10 @@ import {
   MapPin,
   Clock,
   Star,
+  UserPlus,
+  FolderOpen,
+  BellRing,
+  Landmark,
 } from "lucide-react";
 import { SEO, SOFTWARE_SCHEMA, ORG_SCHEMA, buildFAQSchema } from "@/components/SEO";
 
@@ -70,13 +74,14 @@ export default function Home() {
                 </div>
                 
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] text-primary-foreground font-serif">
-                  Digital Court Diary for{" "}
-                  <span className="text-accent">Indian Lawyers</span>
+                  The Digital Backbone for{" "}
+                  <span className="text-accent">Modern Indian Law Firms</span>
                 </h1>
                 
                 <p className="text-lg md:text-xl text-primary-foreground/75 max-w-xl leading-relaxed font-sans">
-                  Manage cases, hearings, documents, clients, and junior preparation 
-                  — all in one secure platform designed for advocates and law firms.
+                  Replace paper diaries and WhatsApp chaos. Track cause lists, manage hearings,
+                  brief juniors, and run a private client portal — built for advocates practising
+                  before Indian courts.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 pt-2">
@@ -140,14 +145,55 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trust Bar */}
-      <section className="py-6 bg-secondary border-y border-border">
+      {/* e-Courts Trust Strip */}
+      <section className="py-8 bg-secondary border-y border-border">
         <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-            <TrustItem icon={<Scale className="h-5 w-5" />} text="Built for Indian Courts" />
+          <p className="text-center text-xs uppercase tracking-widest text-muted-foreground mb-5 font-medium">
+            Aligned with Indian Court Workflows
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center items-center">
+            <TrustItem icon={<Landmark className="h-5 w-5" />} text="e-Courts Compatible" />
+            <TrustItem icon={<Scale className="h-5 w-5" />} text="Supreme Court · High Courts" />
+            <TrustItem icon={<Gavel className="h-5 w-5" />} text="District & Tribunal Ready" />
             <TrustItem icon={<Lock className="h-5 w-5" />} text="Bank-Grade Encryption" />
-            <TrustItem icon={<Building2 className="h-5 w-5" />} text="Solo & Firm Ready" />
-            <TrustItem icon={<MapPin className="h-5 w-5" />} text="Delhi · Gurgaon · All India" />
+            <TrustItem icon={<MapPin className="h-5 w-5" />} text="Delhi · Mumbai · Gurgaon" />
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works — 3 Steps */}
+      <section className="py-20 bg-background">
+        <div className="container">
+          <div className="text-center mb-14">
+            <p className="text-sm uppercase tracking-widest text-accent font-semibold mb-3">How It Works</p>
+            <h2 className="text-3xl font-bold mb-4 font-serif">
+              From Paper Diary to Digital Practice in 3 Steps
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              No training required. Set up your firm, add your cases, and start running a
+              modern legal practice the same day.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <StepCard
+              step="01"
+              icon={<UserPlus className="h-7 w-7" />}
+              title="Create Your Firm"
+              description="Sign up in 60 seconds. Add your firm name, invite junior advocates if you have a team, and you're ready."
+            />
+            <StepCard
+              step="02"
+              icon={<FolderOpen className="h-7 w-7" />}
+              title="Add Cases & Hearings"
+              description="Enter case numbers, courts, judges, and next hearing dates. Upload orders and pleadings to keep everything in one place."
+            />
+            <StepCard
+              step="03"
+              icon={<BellRing className="h-7 w-7" />}
+              title="Stay Court-Ready"
+              description="Get hearing reminders, share status with clients via private portal, and brief juniors with one click — never miss a date."
+            />
           </div>
         </div>
       </section>
