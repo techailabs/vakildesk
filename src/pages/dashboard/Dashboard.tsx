@@ -13,10 +13,12 @@ import {
   CreditCard,
   Loader2,
 } from "lucide-react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCases, useTodayHearings } from "@/hooks/useCases";
 import { useClients } from "@/hooks/useClients";
 import { useDocuments } from "@/hooks/useDocuments";
+import { InviteClientDialog } from "@/components/invite/InviteClientDialog";
 
 export default function Dashboard() {
   const { profile, firm, isLawyerOwner, loading: authLoading } = useAuth();
@@ -24,6 +26,7 @@ export default function Dashboard() {
   const { data: todayHearings, isLoading: hearingsLoading } = useTodayHearings();
   const { clients, isLoading: clientsLoading } = useClients();
   const { documents, isLoading: docsLoading } = useDocuments();
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   const activeCases = cases.filter(c => c.status === 'active');
   const recentCases = cases.slice(0, 5);
@@ -46,12 +49,18 @@ export default function Dashboard() {
             Welcome back, {profile?.name || 'User'}! Here's your overview for today.
           </p>
         </div>
-        <Link to="/dashboard/cases/new">
-          <Button className="bg-gold text-navy-dark hover:bg-gold-light font-semibold">
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Case
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setInviteOpen(true)}>
+            <Users className="h-4 w-4 mr-2" />
+            Invite Client
           </Button>
-        </Link>
+          <Link to="/dashboard/cases/new">
+            <Button variant="cta">
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Case
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Plan Badge */}
@@ -151,10 +160,10 @@ export default function Dashboard() {
           label="Upload Order"
           href="/dashboard/documents"
         />
-        <QuickAction
+        <QuickActionButton
           icon={<Users className="h-5 w-5" />}
           label="Invite Client"
-          href="/dashboard/clients"
+          onClick={() => setInviteOpen(true)}
         />
         <QuickAction
           icon={<CreditCard className="h-5 w-5" />}
@@ -260,7 +269,7 @@ export default function Dashboard() {
               <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-30" />
               <p>No cases yet. Add your first case to get started.</p>
               <Link to="/dashboard/cases/new">
-                <Button className="mt-4 bg-gold text-navy-dark hover:bg-gold-light">
+                <Button variant="cta" className="mt-4">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Case
                 </Button>
@@ -292,6 +301,8 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      <InviteClientDialog open={inviteOpen} onOpenChange={setInviteOpen} />
     </div>
   );
 }
@@ -354,4 +365,27 @@ function QuickAction({
   }
 
   return <Link to={href}>{content}</Link>;
+}
+
+function QuickActionButton({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="p-4 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-center"
+    >
+      <div className="flex flex-col items-center gap-2">
+        <div className="text-primary">{icon}</div>
+        <span className="text-sm font-medium">{label}</span>
+      </div>
+    </button>
+  );
 }
