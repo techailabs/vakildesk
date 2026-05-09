@@ -3,6 +3,9 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft,
   Calendar,
@@ -29,29 +32,61 @@ export default function CaseDetail() {
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const { isAdmin, isLawyerOwner, isLawyerTeam } = useAuth();
   const canEditFirm = isAdmin || isLawyerOwner || isLawyerTeam;
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const caseItem = cases.find((c) => c.id === id);
 
+  // Internal notes live in a separate firm-only table (case_internal_notes)
+  const { data: internalRow } = useQuery({
+    queryKey: ["case-internal-notes", id],
+    enabled: !!id && canEditFirm,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("case_internal_notes")
+        .select("notes, updated_at")
+        .eq("case_id", id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const saveInternal = useMutation({
+    mutationFn: async (notes: string) => {
+      if (!id) return;
+      const { error } = await supabase
+        .from("case_internal_notes")
+        .upsert({ case_id: id, notes, updated_at: new Date().toISOString() }, { onConflict: "case_id" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setSavedAt(new Date());
+      queryClient.invalidateQueries({ queryKey: ["case-internal-notes", id] });
+    },
+    onError: (e: Error) => toast({ title: "Could not save notes", description: e.message, variant: "destructive" }),
+  });
+
   useEffect(() => {
     if (caseItem) {
-      setInternalNotes(caseItem.internal_notes ?? "");
       setClientNotes(caseItem.notes ?? "");
     }
   }, [caseItem]);
 
+  useEffect(() => {
+    if (internalRow) setInternalNotes(internalRow.notes ?? "");
+  }, [internalRow]);
+
   // Debounced autosave for internal notes (firm members only)
   useEffect(() => {
     if (!caseItem || !canEditFirm) return;
-    if (internalNotes === (caseItem.internal_notes ?? "")) return;
+    if (internalNotes === (internalRow?.notes ?? "")) return;
     const t = setTimeout(() => {
-      updateCase.mutate(
-        { id: caseItem.id, internal_notes: internalNotes },
-        { onSuccess: () => setSavedAt(new Date()) },
-      );
+      saveInternal.mutate(internalNotes);
     }, 1200);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [internalNotes, caseItem?.id, canEditFirm]);
+  }, [internalNotes, caseItem?.id, canEditFirm, internalRow?.notes]);
 
   if (isLoading) {
     return (
@@ -75,10 +110,7 @@ export default function CaseDetail() {
   }
 
   const handleSaveInternal = () => {
-    updateCase.mutate(
-      { id: caseItem.id, internal_notes: internalNotes },
-      { onSuccess: () => setSavedAt(new Date()) },
-    );
+    saveInternal.mutate(internalNotes);
   };
 
   const handleSaveClient = () => {
@@ -179,14 +211,17 @@ export default function CaseDetail() {
             {updateCase.isPending && (
               <span className="flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Saving…</span>
             )}
-            {!updateCase.isPending && savedAt && (
+            {saveInternal.isPending && (
+              <span className="flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Saving…</span>
+            )}
+            {!saveInternal.isPending && savedAt && (
               <span className="flex items-center gap-1 text-success"><Check className="h-3 w-3" /> Saved {savedAt.toLocaleTimeString('en-IN')}</span>
             )}
             <Button
               size="sm"
               variant="cta"
               onClick={handleSaveInternal}
-              disabled={!canEditFirm || updateCase.isPending || internalNotes === (caseItem.internal_notes ?? "")}
+              disabled={!canEditFirm || saveInternal.isPending || internalNotes === (internalRow?.notes ?? "")}
             >
               <Save className="h-4 w-4 mr-2" />
               Save now

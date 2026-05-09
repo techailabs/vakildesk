@@ -7,6 +7,7 @@ import { Scale, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { SEO } from "@/components/SEO";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -69,6 +70,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
+      <SEO title="Sign in" description="Sign in to your VakilDesk account to manage cases, hearings, and clients." canonicalPath="/login" noindex />
       <div className="p-4">
         <Link
           to="/"

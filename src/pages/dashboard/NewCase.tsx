@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useCases } from "@/hooks/useCases";
 import { useClients } from "@/hooks/useClients";
+import { supabase } from "@/integrations/supabase/client";
 
 const courts = [
   "Supreme Court of India",
@@ -86,11 +87,16 @@ export default function NewCase() {
         next_hearing_date: nextHearing || null,
         client_id: clientId || null,
         notes: notes || null,
-        internal_notes: internalNotes || null,
         firm_id: firm.id,
         created_by: user.id,
         status: 'active',
-      } as any);
+      } as any).then(async (created: any) => {
+        if (internalNotes && created?.id) {
+          await supabase
+            .from("case_internal_notes")
+            .insert({ case_id: created.id, notes: internalNotes });
+        }
+      });
 
       navigate("/dashboard/cases");
     } catch (error) {

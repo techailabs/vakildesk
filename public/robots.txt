@@ -12,3 +12,11 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /client
+Disallow: /login
+Disallow: /signup
+Disallow: /accept-invite
+
+Sitemap: https://vakildesk.lovable.app/sitemap.xml
