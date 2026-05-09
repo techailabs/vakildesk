@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useCases } from "@/hooks/useCases";
 import { useClients } from "@/hooks/useClients";
+import { supabase } from "@/integrations/supabase/client";
 
 const courts = [
   "Supreme Court of India",
