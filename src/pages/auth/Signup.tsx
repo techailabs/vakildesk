@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Scale, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SEO } from "@/components/SEO";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -87,6 +88,7 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
+      <SEO title="Create your free account" description="Start your 14-day free trial of VakilDesk — the digital court diary for Indian advocates and law firms." canonicalPath="/signup" noindex />
       <div className="p-4">
         <Link
           to="/"
