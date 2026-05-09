@@ -81,6 +81,27 @@ export type Database = {
           },
         ]
       }
+      case_internal_notes: {
+        Row: {
+          case_id: string
+          notes: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          case_id: string
+          notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          case_id?: string
+          notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       case_parties: {
         Row: {
           case_id: string
@@ -135,7 +156,6 @@ export type Database = {
           created_by: string
           firm_id: string
           id: string
-          internal_notes: string | null
           judge: string | null
           next_hearing_date: string | null
           notes: string | null
@@ -154,7 +174,6 @@ export type Database = {
           created_by: string
           firm_id: string
           id?: string
-          internal_notes?: string | null
           judge?: string | null
           next_hearing_date?: string | null
           notes?: string | null
@@ -173,7 +192,6 @@ export type Database = {
           created_by?: string
           firm_id?: string
           id?: string
-          internal_notes?: string | null
           judge?: string | null
           next_hearing_date?: string | null
           notes?: string | null
