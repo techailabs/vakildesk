@@ -298,14 +298,14 @@ Deno.serve(async (req) => {
                   shared_with_client: true,
                 });
 
-              // Set internal notes (private to firm) so privacy tests pass
+              // Set internal notes (private to firm) in dedicated firm-only table
               await supabaseAdmin
-                .from('cases')
-                .update({
-                  internal_notes:
+                .from('case_internal_notes')
+                .upsert({
+                  case_id: caseItem.id,
+                  notes:
                     'PRIVATE: Strategy memo — opposing counsel relies on Section 17. Clients must not see this.',
-                })
-                .eq('id', caseItem.id);
+                }, { onConflict: 'case_id' });
 
               // Link client user to this case via case_parties for privacy testing
               if (clientUser) {
