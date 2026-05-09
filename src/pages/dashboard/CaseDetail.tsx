@@ -13,9 +13,11 @@ import {
   Save,
   Lock,
   UserPlus,
+  Check,
 } from "lucide-react";
 import { useCases } from "@/hooks/useCases";
 import { InviteClientDialog } from "@/components/invite/InviteClientDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function CaseDetail() {
   const { id } = useParams();
@@ -24,6 +26,9 @@ export default function CaseDetail() {
   const [internalNotes, setInternalNotes] = useState("");
   const [clientNotes, setClientNotes] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const { isAdmin, isLawyerOwner, isLawyerTeam } = useAuth();
+  const canEditFirm = isAdmin || isLawyerOwner || isLawyerTeam;
 
   const caseItem = cases.find((c) => c.id === id);
 
@@ -33,6 +38,20 @@ export default function CaseDetail() {
       setClientNotes(caseItem.notes ?? "");
     }
   }, [caseItem]);
+
+  // Debounced autosave for internal notes (firm members only)
+  useEffect(() => {
+    if (!caseItem || !canEditFirm) return;
+    if (internalNotes === (caseItem.internal_notes ?? "")) return;
+    const t = setTimeout(() => {
+      updateCase.mutate(
+        { id: caseItem.id, internal_notes: internalNotes },
+        { onSuccess: () => setSavedAt(new Date()) },
+      );
+    }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [internalNotes, caseItem?.id, canEditFirm]);
 
   if (isLoading) {
     return (
@@ -56,7 +75,10 @@ export default function CaseDetail() {
   }
 
   const handleSaveInternal = () => {
-    updateCase.mutate({ id: caseItem.id, internal_notes: internalNotes });
+    updateCase.mutate(
+      { id: caseItem.id, internal_notes: internalNotes },
+      { onSuccess: () => setSavedAt(new Date()) },
+    );
   };
 
   const handleSaveClient = () => {
@@ -153,27 +175,38 @@ export default function CaseDetail() {
               FIRM ONLY · NEVER SHARED
             </span>
           </div>
-          <Button
-            size="sm"
-            variant="cta"
-            onClick={handleSaveInternal}
-            disabled={updateCase.isPending || internalNotes === (caseItem.internal_notes ?? "")}
-          >
-            <Save className="h-4 w-4 mr-2" />
-            Save Internal Notes
-          </Button>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {updateCase.isPending && (
+              <span className="flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Saving…</span>
+            )}
+            {!updateCase.isPending && savedAt && (
+              <span className="flex items-center gap-1 text-success"><Check className="h-3 w-3" /> Saved {savedAt.toLocaleTimeString('en-IN')}</span>
+            )}
+            <Button
+              size="sm"
+              variant="cta"
+              onClick={handleSaveInternal}
+              disabled={!canEditFirm || updateCase.isPending || internalNotes === (caseItem.internal_notes ?? "")}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save now
+            </Button>
+          </div>
         </div>
         <Textarea
           id="internal-notes"
           rows={6}
           value={internalNotes}
           onChange={(e) => setInternalNotes(e.target.value)}
-          placeholder="Strategy, opposing counsel notes, billing reminders, witness analysis... never visible to clients."
+          placeholder={canEditFirm
+            ? "Strategy, opposing counsel notes, billing reminders, witness analysis... never visible to clients. Autosaves as you type."
+            : "You don't have permission to edit internal notes."}
+          readOnly={!canEditFirm}
           className="border-destructive/20 focus-visible:ring-destructive/40 bg-background"
         />
         <p className="text-xs text-muted-foreground">
-          🔒 Enforced at the database layer. Clients viewing this case in their portal cannot
-          see internal notes.
+          🔒 Enforced at the database layer. Clients viewing this case in their portal cannot see internal notes.
+          {canEditFirm ? " Changes autosave after a short pause." : ""}
         </p>
       </div>
 
