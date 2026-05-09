@@ -30,16 +30,25 @@ import { useCases } from "@/hooks/useCases";
 export default function Cases() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [courtFilter, setCourtFilter] = useState("all");
+  const [hearingDate, setHearingDate] = useState("");
   const { cases, isLoading } = useCases();
+
+  const courts = Array.from(
+    new Set(cases.map((c) => c.court).filter(Boolean) as string[]),
+  ).sort();
 
   const filteredCases = cases.filter((c) => {
     const matchesSearch =
       c.case_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (c.case_number?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+      (c.court?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
       (c.clients?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     const matchesStatus =
       statusFilter === "all" || c.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesCourt = courtFilter === "all" || c.court === courtFilter;
+    const matchesDate = !hearingDate || c.next_hearing_date === hearingDate;
+    return matchesSearch && matchesStatus && matchesCourt && matchesDate;
   });
 
   return (
@@ -61,18 +70,37 @@ export default function Cases() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search cases..."
+            placeholder="Search by title, number, court or client..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
+        <Select value={courtFilter} onValueChange={setCourtFilter}>
+          <SelectTrigger className="w-full md:w-56">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Court" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Courts</SelectItem>
+            {courts.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          type="date"
+          value={hearingDate}
+          onChange={(e) => setHearingDate(e.target.value)}
+          className="w-full md:w-44"
+          aria-label="Next hearing date"
+        />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-40">
+          <SelectTrigger className="w-full md:w-40">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -82,6 +110,19 @@ export default function Cases() {
             <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
         </Select>
+        {(searchQuery || courtFilter !== "all" || hearingDate || statusFilter !== "all") && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setSearchQuery("");
+              setCourtFilter("all");
+              setHearingDate("");
+              setStatusFilter("all");
+            }}
+          >
+            Clear
+          </Button>
+        )}
       </div>
 
       {/* Cases Table */}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,10 +13,41 @@ import {
   Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Settings() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { firm, isLawyerOwner, isAdmin } = useAuth();
+  const [hearingOptIn, setHearingOptIn] = useState(true);
+
+  useEffect(() => {
+    if (!firm?.id) return;
+    (supabase as any)
+      .from('firms')
+      .select('hearing_reminders_opt_in')
+      .eq('id', firm.id)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data) setHearingOptIn(!!data.hearing_reminders_opt_in);
+      });
+  }, [firm?.id]);
+
+  const toggleHearingOptIn = async (val: boolean) => {
+    if (!firm?.id) return;
+    setHearingOptIn(val);
+    const { error } = await (supabase as any)
+      .from('firms')
+      .update({ hearing_reminders_opt_in: val })
+      .eq('id', firm.id);
+    if (error) {
+      setHearingOptIn(!val);
+      toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: val ? 'Hearing reminders on' : 'Hearing reminders off' });
+    }
+  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -104,10 +135,14 @@ export default function Settings() {
             <div>
               <p className="font-medium">Hearing Reminders</p>
               <p className="text-sm text-muted-foreground">
-                Get notified before upcoming hearings
+                Send in-app reminders to firm members one day before each hearing.
               </p>
             </div>
-            <Switch defaultChecked />
+            <Switch
+              checked={hearingOptIn}
+              onCheckedChange={toggleHearingOptIn}
+              disabled={!(isLawyerOwner || isAdmin)}
+            />
           </div>
           <Separator />
           <div className="flex items-center justify-between">
