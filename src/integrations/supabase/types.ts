@@ -381,6 +381,7 @@ export type Database = {
       firms: {
         Row: {
           created_at: string
+          hearing_reminders_opt_in: boolean
           id: string
           name: string
           owner_id: string
@@ -390,6 +391,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          hearing_reminders_opt_in?: boolean
           id?: string
           name: string
           owner_id: string
@@ -399,12 +401,52 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          hearing_reminders_opt_in?: boolean
           id?: string
           name?: string
           owner_id?: string
           plan_status?: Database["public"]["Enums"]["plan_status"]
           plan_type?: Database["public"]["Enums"]["plan_type"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          case_id: string | null
+          created_at: string
+          firm_id: string | null
+          id: string
+          kind: string
+          link: string | null
+          read: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          case_id?: string | null
+          created_at?: string
+          firm_id?: string | null
+          id?: string
+          kind?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          case_id?: string | null
+          created_at?: string
+          firm_id?: string | null
+          id?: string
+          kind?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
