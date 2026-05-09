@@ -10,7 +10,6 @@ import {
   LogOut,
   Menu,
   X,
-  Bell,
   User,
   ChevronDown,
   Shield,
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -178,10 +178,7 @@ export function DashboardLayout() {
             <div className="flex-1" />
 
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 h-2 w-2 bg-court-red rounded-full" />
-              </Button>
+              <NotificationsBell />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
